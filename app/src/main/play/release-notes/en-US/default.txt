@@ -1,0 +1,5 @@
+• 10 NEW levels — 20 in total, with tougher bosses!
+• New unlockable characters — pick your hero
+• Enemy bullets now glow red so you can dodge incoming fire
+• Game over now restarts the same level (no more back to Level 1)
+• Bug fixes and polish
