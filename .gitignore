@@ -14,3 +14,8 @@ keystore.properties
 # Play publishing service-account key — secret, never commit
 play-service-account.json
 *service-account*.json
+
+# Design artifacts / prototypes — keep the repo code-only
+*.pdf
+/Iron Fury.html
+/Iron Fury_files/
