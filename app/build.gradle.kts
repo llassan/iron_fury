@@ -17,14 +17,14 @@ val keystoreProps = Properties().apply {
 
 android {
     namespace = "com.ironfury.laststand"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ironfury.laststand"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.7"
+        targetSdk = 36
+        versionCode = 9
+        versionName = "1.0.8"
     }
 
     signingConfigs {
