@@ -1,5 +1,6 @@
-Controls & combat polish!
-• Redesigned on-screen controls — sleek, translucent D-pad + buttons
-• The gun in your hands now changes with your selected weapon
-• Crisp new muzzle-flash and firing effects
+Big visual + controls update!
+• Redesigned sleek translucent on-screen controls
+• The gun in your hands now matches your selected weapon
+• Punchy new firing + weapon-specific enemy death effects
 • Cleaner HUD: framed lives, score and progress bar
+• Smoother damage feedback
