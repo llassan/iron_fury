@@ -1,47 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Crosshair circle -->
+    <!-- ============ BLAST RAYS (behind the shield) ============ -->
+    <group>
+        <path
+            android:pathData="M54,54 L60,8 L48,8 Z"
+            android:fillColor="#22FFC24A"/>
+        <path
+            android:pathData="M54,54 L60,100 L48,100 Z"
+            android:fillColor="#1CFFC24A"/>
+        <path
+            android:pathData="M54,54 L100,60 L100,48 Z"
+            android:fillColor="#1CFFC24A"/>
+        <path
+            android:pathData="M54,54 L8,60 L8,48 Z"
+            android:fillColor="#1CFFC24A"/>
+        <path
+            android:pathData="M54,54 L90,18 L82,10 Z"
+            android:fillColor="#16FF9A2A"/>
+        <path
+            android:pathData="M54,54 L26,10 L18,18 Z"
+            android:fillColor="#16FF9A2A"/>
+        <path
+            android:pathData="M54,54 L90,90 L98,82 Z"
+            android:fillColor="#16FF9A2A"/>
+        <path
+            android:pathData="M54,54 L18,90 L10,82 Z"
+            android:fillColor="#16FF9A2A"/>
+    </group>
+
+    <!-- ============ STEEL SHIELD ============ -->
+    <!-- Drop shadow -->
     <path
-        android:pathData="M54,28 A26,26 0 1,1 53.99,28"
-        android:strokeColor="#44FFFFFF"
-        android:strokeWidth="1.5"
+        android:pathData="M54,27 L80.5,41 L80.5,73 L54,88 L27.5,73 L27.5,41 Z"
+        android:fillColor="#55000000"/>
+    <!-- Plate with vertical steel gradient -->
+    <path android:pathData="M54,25 L79,39 L79,71 L54,86 L29,71 L29,39 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="25"
+                android:endX="54" android:endY="86">
+                <item android:offset="0.0" android:color="#FF3D4350"/>
+                <item android:offset="0.5" android:color="#FF2A2E39"/>
+                <item android:offset="1.0" android:color="#FF181B23"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Bright top-left bevel edge -->
+    <path
+        android:pathData="M54,25 L79,39 L77,41 L54,27.8 L31,41 L29,39 Z"
+        android:fillColor="#88A7B0C0"/>
+    <!-- Dark bottom-right bevel edge -->
+    <path
+        android:pathData="M79,71 L54,86 L29,71 L31,70 L54,83.2 L77,70 Z"
+        android:fillColor="#77000000"/>
+    <!-- Inner hairline frame -->
+    <path
+        android:pathData="M54,31 L74,42.2 L74,67.8 L54,79.4 L34,67.8 L34,42.2 Z"
+        android:strokeColor="#33FFC24A"
+        android:strokeWidth="0.9"
         android:fillColor="#00000000"/>
 
-    <!-- Crosshair lines -->
-    <path
-        android:pathData="M54,22 L54,32 M54,76 L54,86"
-        android:strokeColor="#44FFFFFF"
-        android:strokeWidth="1.2"
-        android:fillColor="#00000000"/>
-    <path
-        android:pathData="M22,54 L32,54 M76,54 L86,54"
-        android:strokeColor="#44FFFFFF"
-        android:strokeWidth="1.2"
-        android:fillColor="#00000000"/>
+    <!-- Rivets -->
+    <path android:pathData="M54,30 A1.4,1.4 0 1,1 53.99,30" android:fillColor="#99C7D0DE"/>
+    <path android:pathData="M54,82 A1.4,1.4 0 1,1 53.99,82" android:fillColor="#88000000"/>
 
-    <!-- Letter I -->
-    <path
-        android:pathData="M36,38 L36,70 L42,70 L42,38 Z"
-        android:fillColor="#E94560"/>
-
-    <!-- Letter F -->
-    <path
-        android:pathData="M48,38 L48,70 L54,70 L54,57 L66,57 L66,51 L54,51 L54,44 L68,44 L68,38 Z"
-        android:fillColor="#E94560"/>
-
-    <!-- Bullet holes / accents -->
-    <path
-        android:pathData="M74,64 A2.5,2.5 0 1,1 73.99,64"
-        android:fillColor="#FFCC00"/>
-    <path
-        android:pathData="M30,42 A2,2 0 1,1 29.99,42"
-        android:fillColor="#FFCC00"/>
-    <path
-        android:pathData="M72,36 A1.5,1.5 0 1,1 71.99,36"
-        android:fillColor="#FFCC00"/>
+    <!-- ============ LETTERS "IF" ============ -->
+    <!-- Shadow pass -->
+    <group>
+        <!-- I -->
+        <path android:pathData="M37.5,45.5 L52.5,45.5 L52.5,49.8 L48,49.8 L48,67.2 L52.5,67.2 L52.5,71.5 L37.5,71.5 L37.5,67.2 L42,67.2 L42,49.8 L37.5,49.8 Z"
+            android:fillColor="#99000000"/>
+        <!-- F -->
+        <path android:pathData="M55,45.5 L73,45.5 L73,50.8 L60.5,50.8 L60.5,55.2 L70,55.2 L70,60.3 L60.5,60.3 L60.5,71.5 L55,71.5 Z"
+            android:fillColor="#99000000"/>
+    </group>
+    <!-- Fire-gradient letters -->
+    <!-- I -->
+    <path android:pathData="M36.5,44.5 L51.5,44.5 L51.5,48.8 L47,48.8 L47,66.2 L51.5,66.2 L51.5,70.5 L36.5,70.5 L36.5,66.2 L41,66.2 L41,48.8 L36.5,48.8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="44" android:startY="44"
+                android:endX="44" android:endY="70">
+                <item android:offset="0.0" android:color="#FFFFE24A"/>
+                <item android:offset="0.5" android:color="#FFFF8A1E"/>
+                <item android:offset="1.0" android:color="#FFD81E34"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- F -->
+    <path android:pathData="M54,44.5 L72,44.5 L72,49.8 L59.5,49.8 L59.5,54.2 L69,54.2 L69,59.3 L59.5,59.3 L59.5,70.5 L54,70.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="63" android:startY="44"
+                android:endX="63" android:endY="70">
+                <item android:offset="0.0" android:color="#FFFFE24A"/>
+                <item android:offset="0.5" android:color="#FFFF8A1E"/>
+                <item android:offset="1.0" android:color="#FFD81E34"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Specular highlight on the letter tops -->
+    <path android:pathData="M36.5,44.5 L51.5,44.5 L51.5,46.3 L36.5,46.3 Z" android:fillColor="#88FFF6C0"/>
+    <path android:pathData="M54,44.5 L72,44.5 L72,46.3 L54,46.3 Z" android:fillColor="#88FFF6C0"/>
 </vector>

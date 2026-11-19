@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Moody base: diagonal navy gradient -->
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="0"
+                android:endX="108" android:endY="108">
+                <item android:offset="0.0" android:color="#FF23213F"/>
+                <item android:offset="0.55" android:color="#FF161430"/>
+                <item android:offset="1.0" android:color="#FF0C0B1C"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Warm muzzle-flash glow, low-centred so the emblem sits in the light -->
+    <path android:pathData="M0,0 L108,0 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54" android:centerY="60"
+                android:gradientRadius="58">
+                <item android:offset="0.0" android:color="#66FF7A1A"/>
+                <item android:offset="0.45" android:color="#2EE0402A"/>
+                <item android:offset="1.0" android:color="#00000000"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>
