@@ -131,6 +131,15 @@ object Sprites {
                     cache["enemy_$name"] = Bitmap.createBitmap(sub, 0, 0, w, h, flip, false)
                 }
             }
+            // Generic mech-core bosses (reactor-door structures), no flip needed.
+            val bossR = listOf(
+                intArrayOf(6, 100, 152, 241),
+                intArrayOf(152, 100, 300, 241),
+                intArrayOf(300, 100, 447, 241)
+            )
+            val bl = ArrayList<Bitmap>()
+            for (r in bossR) runCatching { bl.add(Bitmap.createBitmap(enemySheet, r[0], r[1], r[2] - r[0], r[3] - r[1])) }
+            bossSprites = bl
         }
 
         // FX sheets: explosion (10x5 grid of 100x100 = 50 frames) + muzzle (4x square).
@@ -183,6 +192,10 @@ object Sprites {
             canvas.drawBitmap(bmp, src, dst, p)
         }
     }
+
+    private var bossSprites: List<Bitmap> = emptyList()
+    val bossSpriteCount: Int get() = bossSprites.size
+    fun bossSprite(i: Int): Bitmap? = bossSprites.getOrNull(i)
 
     fun hero(name: String): Bitmap? = cache["hero_$name"]
     fun enemy(name: String): Bitmap? = cache["enemy_$name"]
