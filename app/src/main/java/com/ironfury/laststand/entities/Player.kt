@@ -287,17 +287,31 @@ class Player : Entity(
                 val targetHpx = Constants.PLAYER_HEIGHT * 1.2f * scale
                 Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
 
-                // Muzzle flash at the gun tip while firing.
-                if (firing && Sprites.muzzleFrameCount > 0) {
+                // Muzzle flash: crisp directional burst at the gun tip while firing,
+                // strobing + flickering so it reads as rapid muzzle fire.
+                if (firing && ((animTime * 22f).toInt() % 2 == 0)) {
                     val sp = getBulletSpawnPosition()
-                    val mf = Sprites.muzzleFrame((animTime * 30f).toInt() % Sprites.muzzleFrameCount)
-                    if (mf != null) {
-                        Sprites.drawCentered(
-                            canvas, mf,
-                            (sp.x - cameraX) * scale, sp.y * scale,
-                            24f * scale, tint = android.graphics.Color.rgb(255, 225, 130)
-                        )
-                    }
+                    val mx = (sp.x - cameraX) * scale
+                    val my = sp.y * scale
+                    val aim = Vector2.direction(aimDirection)
+                    val fr = 0.85f + (animTime * 40f % 1f) * 0.35f
+                    val baseR = 5.5f * scale * fr
+                    val perpX = -aim.y; val perpY = aim.x
+                    val len = 17f * scale * fr
+                    // Orange glow
+                    paint.color = android.graphics.Color.argb(150, 255, 150, 40)
+                    canvas.drawCircle(mx, my, baseR * 1.8f, paint)
+                    // Forward flare (triangle pointing along aim)
+                    gunPath.reset()
+                    gunPath.moveTo(mx + aim.x * len, my + aim.y * len)
+                    gunPath.lineTo(mx + perpX * baseR, my + perpY * baseR)
+                    gunPath.lineTo(mx - perpX * baseR, my - perpY * baseR)
+                    gunPath.close()
+                    paint.color = android.graphics.Color.argb(225, 255, 205, 85)
+                    canvas.drawPath(gunPath, paint)
+                    // White-hot core
+                    paint.color = android.graphics.Color.argb(235, 255, 245, 205)
+                    canvas.drawCircle(mx, my, baseR * 0.85f, paint)
                 }
                 return
             }
