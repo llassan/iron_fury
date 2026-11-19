@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.LinearGradient
+import android.graphics.RectF
 import android.graphics.Shader
 import com.ironfury.laststand.audio.SoundManager
 import com.ironfury.laststand.cosmetics.CharacterSkin
@@ -90,6 +91,8 @@ class Player : Entity(
 
     // Reused path for building oriented gun shapes
     private val gunPath = Path()
+    // Reused rect for the invincibility alpha-pulse layer
+    private val invRect = RectF()
 
     // Character palette — driven by the selected CharacterSkin (see applySkin).
     // Defaults to the RECRUIT look so the player renders correctly even before a
@@ -263,11 +266,6 @@ class Player : Entity(
     override fun render(canvas: Canvas, cameraX: Float, scale: Float) {
         if (!isActive) return
 
-        // Flicker when invincible
-        if (isInvincible && (System.currentTimeMillis() / 100) % 2 == 0L) {
-            return
-        }
-
         val screenX = (position.x - cameraX) * scale
         val screenY = position.y * scale
         val w = width * scale
@@ -285,6 +283,15 @@ class Player : Entity(
                 val feetY = screenY + h
                 val cx = screenX + w / 2f
                 val targetHpx = Constants.PLAYER_HEIGHT * 1.2f * scale
+
+                // Invincibility feedback: a smooth alpha pulse over the whole player
+                // (sprite + gun), far gentler than the old hard on/off blink.
+                val invLayer = if (isInvincible) {
+                    val a = (150f + sin(animTime * 15f) * 75f).toInt().coerceIn(60, 225)
+                    invRect.set(cx - w * 1.2f, feetY - targetHpx - 8f * scale, cx + w * 1.2f + targetHpx, feetY + 8f * scale)
+                    canvas.saveLayerAlpha(invRect, a)
+                } else -1
+
                 Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
 
                 // Per-weapon held gun overlaid on the sprite's hands so switching
@@ -321,6 +328,8 @@ class Player : Entity(
                     paint.color = android.graphics.Color.argb(235, 255, 245, 205)
                     canvas.drawCircle(mx, my, baseR * 0.85f, paint)
                 }
+
+                if (invLayer != -1) canvas.restoreToCount(invLayer)
                 return
             }
         }

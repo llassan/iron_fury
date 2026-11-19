@@ -457,6 +457,7 @@ class GameState(private val context: Context) {
                     if (bulletHitsEntity(bullet, enemy)) {
                         bullet.isActive = false
                         spawnCoinsAt(enemy.centerX, enemy.centerY)
+                        spawnWeaponDeathFx(enemy.centerX, enemy.centerY, bullet.weaponType)
                         enemy.isActive = false
                         player.score += Constants.ENEMY_SCORE
                         SoundManager.play(SoundManager.Sound.ENEMY_DEATH)
@@ -530,6 +531,20 @@ class GameState(private val context: Context) {
     private fun createExplosion(position: Vector2, radius: Float) {
         explosions.add(Explosion(position, radius))
         SoundManager.play(SoundManager.Sound.EXPLOSION)
+    }
+
+    /** Distinct death burst per weapon (size + colour) when a grunt is killed. */
+    private fun spawnWeaponDeathFx(x: Float, y: Float, weapon: WeaponType) {
+        val radius: Float
+        val tint: Int?
+        when (weapon) {
+            WeaponType.MACHINE_GUN -> { radius = 24f; tint = null }                        // small orange pop
+            WeaponType.SPREAD_GUN -> { radius = 30f; tint = null }                         // wider orange pop
+            WeaponType.LASER -> { radius = 28f; tint = Color.rgb(120, 230, 255) }          // cyan vaporise
+            WeaponType.FLAMETHROWER -> { radius = 34f; tint = Color.rgb(255, 140, 40) }    // fiery burn
+            WeaponType.ROCKET_LAUNCHER -> { radius = 40f; tint = null }                    // big blast
+        }
+        explosions.add(Explosion(Vector2(x, y), radius, tint))
     }
 
     private fun handleExplosionDamage(center: Vector2, radius: Float) {

@@ -8,7 +8,8 @@ import com.ironfury.laststand.utils.Vector2
 
 class Explosion(
     val position: Vector2,
-    private val maxRadius: Float = 60f
+    private val maxRadius: Float = 60f,
+    private val tint: Int? = null   // optional colour for the sprite burst (per-weapon)
 ) {
     var isActive = true
         private set
@@ -69,7 +70,7 @@ class Explosion(
             val frame = Sprites.explosionFrame(idx)
             if (frame != null) {
                 // Draw ~3x the blast radius so the fireball reads big.
-                Sprites.drawCentered(canvas, frame, screenX, screenY, maxRadius * 3f * scale)
+                Sprites.drawCentered(canvas, frame, screenX, screenY, maxRadius * 3f * scale, tint = tint)
                 return
             }
         }
