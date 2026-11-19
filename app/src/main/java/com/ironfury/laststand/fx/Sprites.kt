@@ -58,8 +58,33 @@ object Sprites {
         "victory" to intArrayOf(292, 175, 337, 260)
     )
 
+    private var assets: android.content.res.AssetManager? = null
+
+    // One biome's 4 parallax layers kept in memory at a time (back=0 .. front=3).
+    private var bgBiome: String? = null
+    private val bgLayers = arrayOfNulls<Bitmap>(4)
+
+    /** Decode the 4 parallax layers for [biome] on demand; only one biome resident. */
+    fun loadBackground(biome: String) {
+        if (biome == bgBiome) return
+        val am = assets ?: return
+        for (i in 0 until 4) {
+            bgLayers[i] = try {
+                am.open("backgrounds/${biome}_${i + 1}.png").use { BitmapFactory.decodeStream(it) }
+            } catch (e: java.io.IOException) {
+                null
+            }
+        }
+        // No recycle(): the render thread may still hold the previous biome's bitmaps.
+        bgBiome = biome
+    }
+
+    fun bgLayer(i: Int): Bitmap? = bgLayers.getOrNull(i)
+    fun hasBackground(): Boolean = bgLayers[0] != null
+
     fun load(context: Context) {
         if (ready) return
+        assets = context.assets
         val am = context.assets
         val hero = try {
             am.open("sprites/fierce/hero_sheet.png").use { BitmapFactory.decodeStream(it) }

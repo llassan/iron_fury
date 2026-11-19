@@ -10,3 +10,9 @@ Iron Fury: Last Stand — art asset credits
   Changes: sheets sliced into individual frames; recoloured/graded per level theme.
 
 (Further CC0/CC-BY packs for parallax backdrops and FX will be added here as used.)
+
+"Multilayer Scroll Backgrounds" (parallax layers)
+  Source : https://opengameart.org/content/multilayer-scroll-backgrounds
+  Author : Vircon32
+  License: CC-BY 4.0
+  Used for: parallax level backdrops (assets/backgrounds/), colour-graded per theme.

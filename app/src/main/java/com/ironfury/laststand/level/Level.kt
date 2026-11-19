@@ -6,7 +6,10 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RadialGradient
+import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Shader
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import kotlin.math.sin
 
@@ -959,41 +962,82 @@ class Level(levelNumber: Int = 1) {
     fun render(canvas: Canvas, cameraX: Float, scale: Float, screenWidth: Int, screenHeight: Int) {
         val t = theme
 
-        if (screenWidth != lastScreenWidth || screenHeight != lastScreenHeight) {
-            createGradients(screenWidth, screenHeight, t)
-            lastScreenWidth = screenWidth
-            lastScreenHeight = screenHeight
-        }
+        if (!renderParallax(canvas, cameraX, scale, screenWidth, screenHeight)) {
+            // ---- Procedural fallback (original code-drawn backdrop) ----
+            if (screenWidth != lastScreenWidth || screenHeight != lastScreenHeight) {
+                createGradients(screenWidth, screenHeight, t)
+                lastScreenWidth = screenWidth
+                lastScreenHeight = screenHeight
+            }
 
-        // Sky
-        paint.shader = skyGradient
-        canvas.drawRect(0f, 0f, screenWidth.toFloat(), screenHeight.toFloat(), paint)
-        paint.shader = null
-
-        // Sun
-        if (t.showSun) {
-            val sunX = screenWidth * 0.8f - cameraX * 0.05f * scale
-            val sunY = screenHeight * 0.15f
-            val sunRadius = 40f * scale
-
-            paint.shader = RadialGradient(
-                sunX, sunY, sunRadius * 3,
-                intArrayOf(t.sunGlowColor, Color.argb(0, 0, 0, 0)),
-                null, Shader.TileMode.CLAMP
-            )
-            canvas.drawCircle(sunX, sunY, sunRadius * 3, paint)
+            // Sky
+            paint.shader = skyGradient
+            canvas.drawRect(0f, 0f, screenWidth.toFloat(), screenHeight.toFloat(), paint)
             paint.shader = null
 
-            paint.color = t.sunColor
-            canvas.drawCircle(sunX, sunY, sunRadius, paint)
+            // Sun
+            if (t.showSun) {
+                val sunX = screenWidth * 0.8f - cameraX * 0.05f * scale
+                val sunY = screenHeight * 0.15f
+                val sunRadius = 40f * scale
+
+                paint.shader = RadialGradient(
+                    sunX, sunY, sunRadius * 3,
+                    intArrayOf(t.sunGlowColor, Color.argb(0, 0, 0, 0)),
+                    null, Shader.TileMode.CLAMP
+                )
+                canvas.drawCircle(sunX, sunY, sunRadius * 3, paint)
+                paint.shader = null
+
+                paint.color = t.sunColor
+                canvas.drawCircle(sunX, sunY, sunRadius, paint)
+            }
+
+            renderClouds(canvas, cameraX, scale, screenWidth, t)
+            renderFarMountains(canvas, cameraX * 0.15f, scale, screenWidth, t)
+            renderNearMountains(canvas, cameraX * 0.3f, scale, screenWidth, t)
+            renderTrees(canvas, cameraX * 0.6f, scale, screenWidth, t)
         }
 
-        renderClouds(canvas, cameraX, scale, screenWidth, t)
-        renderFarMountains(canvas, cameraX * 0.15f, scale, screenWidth, t)
-        renderNearMountains(canvas, cameraX * 0.3f, scale, screenWidth, t)
-        renderTrees(canvas, cameraX * 0.6f, scale, screenWidth, t)
         renderGround(canvas, cameraX, scale, screenWidth, screenHeight, t)
         renderPlatforms(canvas, cameraX, scale, screenWidth, t)
+    }
+
+    // ---- Pixel-art parallax backdrop (Vircon32 "Multilayer Scroll Backgrounds") ----
+    private val bgPaint = Paint()               // no filter: crisp nearest-neighbour upscale
+    private val bgSrc = Rect()
+    private val bgDst = RectF()
+    // Back-to-front scroll multipliers: sky barely moves, foreground moves most.
+    private val parallaxFactors = floatArrayOf(0.05f, 0.2f, 0.45f, 0.7f)
+
+    /** Map each level theme to one of the two base biomes (graded per-theme comes next). */
+    private fun themeBiome(level: Int): String = when (level) {
+        2, 4, 10, 13, 17, 19, 20 -> "desert"   // desert / volcanic / dunes / ashen / final
+        else -> "tropical"                      // forest / temperate / everything else for now
+    }
+
+    private fun renderParallax(
+        canvas: Canvas, cameraX: Float, scale: Float, screenWidth: Int, screenHeight: Int
+    ): Boolean {
+        if (!Sprites.ready) return false
+        Sprites.loadBackground(themeBiome(currentLevel))
+        if (!Sprites.hasBackground()) return false
+
+        val h = screenHeight.toFloat()
+        for (i in 0 until 4) {
+            val bmp = Sprites.bgLayer(i) ?: continue
+            val tileW = h * bmp.width / bmp.height          // full-height, aspect-preserved
+            if (tileW <= 0f) continue
+            val off = (cameraX * parallaxFactors[i] * scale) % tileW
+            bgSrc.set(0, 0, bmp.width, bmp.height)
+            var x = -off
+            while (x < screenWidth) {
+                bgDst.set(x, 0f, x + tileW, h)
+                canvas.drawBitmap(bmp, bgSrc, bgDst, bgPaint)
+                x += tileW
+            }
+        }
+        return true
     }
 
     private fun createGradients(screenWidth: Int, screenHeight: Int, t: LevelTheme) {
