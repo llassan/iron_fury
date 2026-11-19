@@ -77,6 +77,8 @@ class GameState(private val context: Context) {
     private var settingsScreenW = 0
     private var settingsScreenH = 0
 
+    private val menuBgDst = RectF()                       // reused for the start-screen backdrop
+
     // Character select screen
     private var charactersButtonRect = RectF()           // "CHARACTERS" button on start screen
     private val characterCardRects = mutableListOf<RectF>()
@@ -980,32 +982,44 @@ class GameState(private val context: Context) {
         val sh = screenHeight.toFloat()
         val sw = screenWidth.toFloat()
 
-        // Animated background gradient
-        val bgPaint = Paint()
-        val gradientOffset = (kotlin.math.sin(startScreenTime * 0.5) * 50).toInt()
-        bgPaint.shader = android.graphics.LinearGradient(
-            0f, 0f, 0f, sh,
-            intArrayOf(
-                Color.rgb(20 + gradientOffset / 5, 10, 40),
-                Color.rgb(40, 20 + gradientOffset / 5, 60),
-                Color.rgb(20, 30, 50 + gradientOffset / 3)
-            ),
-            floatArrayOf(0f, 0.5f, 1f),
-            android.graphics.Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(0f, 0f, sw, sh, bgPaint)
-
-        // Animated stars
-        val starPaint = Paint().apply {
-            color = Color.WHITE
-            isAntiAlias = true
+        // === Pixel biome backdrop (slow parallax drift) + dark overlay for contrast ===
+        var drewBackdrop = false
+        if (com.ironfury.laststand.fx.Sprites.ready) {
+            com.ironfury.laststand.fx.Sprites.loadBackground("plains")
+            val n = com.ironfury.laststand.fx.Sprites.bgLayerCount()
+            if (n > 0) {
+                val menuPaint = Paint()
+                for (i in 0 until n) {
+                    val bmp = com.ironfury.laststand.fx.Sprites.bgLayer(i) ?: continue
+                    val frac = if (n <= 1) 0f else i.toFloat() / (n - 1)
+                    val tileW = sh * bmp.width / bmp.height
+                    if (tileW <= 0f) continue
+                    val off = ((startScreenTime * 10f * (0.4f + frac)) % tileW)
+                    var x = -off
+                    while (x < sw) {
+                        menuBgDst.set(x, 0f, x + tileW, sh)
+                        canvas.drawBitmap(bmp, null, menuBgDst, menuPaint)
+                        x += tileW
+                    }
+                }
+                canvas.drawColor(Color.argb(105, 10, 8, 22))  // darken for text legibility
+                drewBackdrop = true
+            }
         }
-        for (i in 0 until 50) {
-            val starX = ((i * 137 + startScreenTime * 20 * (i % 3 + 1)) % screenWidth).toFloat()
-            val starY = ((i * 89) % screenHeight).toFloat()
-            val twinkle = (kotlin.math.sin(startScreenTime * 3 + i) * 0.5 + 0.5).toFloat()
-            starPaint.alpha = (100 + twinkle * 155).toInt()
-            canvas.drawCircle(starX, starY, 1.5f * scale * twinkle, starPaint)
+        if (!drewBackdrop) {
+            val bgPaint = Paint()
+            val gradientOffset = (kotlin.math.sin(startScreenTime * 0.5) * 50).toInt()
+            bgPaint.shader = android.graphics.LinearGradient(
+                0f, 0f, 0f, sh,
+                intArrayOf(
+                    Color.rgb(20 + gradientOffset / 5, 10, 40),
+                    Color.rgb(40, 20 + gradientOffset / 5, 60),
+                    Color.rgb(20, 30, 50 + gradientOffset / 3)
+                ),
+                floatArrayOf(0f, 0.5f, 1f),
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            canvas.drawRect(0f, 0f, sw, sh, bgPaint)
         }
 
         val centerX = sw / 2f
@@ -1588,7 +1602,17 @@ class GameState(private val context: Context) {
     }
 
     private fun renderStartScreenSoldier(canvas: Canvas, centerX: Float, centerY: Float, scale: Float) {
-        StartScreenSoldier.render(canvas, centerX, centerY, scale, startScreenTime, weaponManager.selectedCharacter)
+        // Pixel hero sprite (idle), feet near centerY; falls back to the vector soldier.
+        val bmp = com.ironfury.laststand.fx.Sprites.hero("idle0")
+        if (bmp != null) {
+            val bob = (kotlin.math.sin(startScreenTime * 2.0) * 3.0).toFloat() * scale
+            val targetH = 110f * scale
+            com.ironfury.laststand.fx.Sprites.drawFeetAnchored(
+                canvas, bmp, centerX, centerY + targetH * 0.5f + bob, targetH, true
+            )
+        } else {
+            StartScreenSoldier.render(canvas, centerX, centerY, scale, startScreenTime, weaponManager.selectedCharacter)
+        }
     }
 
     fun continueFromCheckpoint() {
