@@ -217,6 +217,24 @@ abstract class Boss(
         if (screenX + w < 0 || screenX > canvas.width) return
 
         val flashing = damageFlashTime > 0
+
+        // Generic mech-core boss sprite (cycled per level), with white damage flash.
+        // Falls back to the subclass's code-drawn body if sprites are unavailable.
+        val bossCount = com.ironfury.laststand.fx.Sprites.bossSpriteCount
+        if (bossCount > 0) {
+            val sprite = com.ironfury.laststand.fx.Sprites.bossSprite((levelNumber - 1).coerceAtLeast(0) % bossCount)
+            if (sprite != null) {
+                // Draw a bit larger than the hitbox so the boss reads as imposing.
+                com.ironfury.laststand.fx.Sprites.drawCentered(
+                    canvas, sprite,
+                    screenX + w / 2f, screenY + h / 2f, h * 1.5f,
+                    tint = if (flashing) android.graphics.Color.WHITE else null
+                )
+                renderHealthBar(canvas, screenX, screenY, w, h, scale)
+                return
+            }
+        }
+
         renderBody(canvas, screenX, screenY, w, h, scale, flashing)
         renderHealthBar(canvas, screenX, screenY, w, h, scale)
     }

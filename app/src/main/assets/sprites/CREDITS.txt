@@ -1,0 +1,42 @@
+Iron Fury: Last Stand — art asset credits
+=========================================
+
+"Fierce Soldier" sprite set
+  Source : https://opengameart.org/content/fierce-soldier-sprites
+  Author : xiaocaibi (original art by Vircon32)
+  License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Used for: player commando (hero_sheet.png), soldier enemies + emplacements
+            (enemies_sheet.png), grass/dirt tileset + GUI (scenery_gui_sheet.png).
+  Changes: sheets sliced into individual frames; recoloured/graded per level theme.
+
+(Further CC0/CC-BY packs for parallax backdrops and FX will be added here as used.)
+
+"Multilayer Scroll Backgrounds" (parallax layers)
+  Source : https://opengameart.org/content/multilayer-scroll-backgrounds
+  Author : Vircon32
+  License: CC-BY 4.0
+  Used for: parallax level backdrops (assets/backgrounds/), colour-graded per theme.
+
+"Parallax Backgrounds" (Plains, Snowy Mountains, Cave, Dead Forest, Dock)
+  Source : https://opengameart.org/content/parallax-backgrounds
+  Author : Admurin
+  License: CC-BY 4.0
+  Used for: per-biome parallax level backdrops (assets/backgrounds/<biome>/).
+
+"Seamless Space Backgrounds" (space/void biomes)
+  Source : https://opengameart.org/content/seamless-space-backgrounds
+  Author : Screaming Brain Studios
+  License: CC0 1.0 (public domain)
+  Used for: Orbital Station (space) + Void Nebula (void) backdrops.
+
+"Cyberpunk Street Environment" (city/neon biome)
+  Source : https://opengameart.org/content/cyberpunk-street-environment
+  Author : ansimuz
+  License: CC-BY 3.0
+  Used for: Neon City backdrop (assets/backgrounds/city/).
+
+"Explosion 7" (explosion animation) — CC0 — https://opengameart.org/content/explosion-7
+"Muzzle Flash Particle Sheet" (muzzle flash) — CC0 — https://opengameart.org/content/muzzle-flash-particle-sheet
+
+"Onscreen Controls" (touch D-pad + buttons) — CC0 — Kenney
+  https://opengameart.org/content/onscreen-controls-8-styles

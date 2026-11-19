@@ -1,5 +1,7 @@
-• 10 NEW levels — 20 in total, with tougher bosses!
-• New unlockable characters — pick your hero
-• Enemy bullets now glow red so you can dodge incoming fire
-• Game over now restarts the same level (no more back to Level 1)
-• Bug fixes and polish
+MASSIVE visual overhaul!
+• Brand-new hand-picked pixel-art graphics throughout
+• Animated commando hero + sprite enemies
+• 20 detailed parallax backdrops (forests, snow, caves, neon city, deep space & more)
+• Explosions, muzzle flashes and combat effects
+• Redesigned on-screen controls and title screen
+• New boss visuals

@@ -6,7 +6,10 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RadialGradient
+import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Shader
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import kotlin.math.sin
 
@@ -959,41 +962,117 @@ class Level(levelNumber: Int = 1) {
     fun render(canvas: Canvas, cameraX: Float, scale: Float, screenWidth: Int, screenHeight: Int) {
         val t = theme
 
+        if (!renderParallax(canvas, cameraX, scale, screenWidth, screenHeight)) {
+            // ---- Procedural fallback (original code-drawn backdrop) ----
+            if (screenWidth != lastScreenWidth || screenHeight != lastScreenHeight) {
+                createGradients(screenWidth, screenHeight, t)
+                lastScreenWidth = screenWidth
+                lastScreenHeight = screenHeight
+            }
+
+            // Sky
+            paint.shader = skyGradient
+            canvas.drawRect(0f, 0f, screenWidth.toFloat(), screenHeight.toFloat(), paint)
+            paint.shader = null
+
+            // Sun
+            if (t.showSun) {
+                val sunX = screenWidth * 0.8f - cameraX * 0.05f * scale
+                val sunY = screenHeight * 0.15f
+                val sunRadius = 40f * scale
+
+                paint.shader = RadialGradient(
+                    sunX, sunY, sunRadius * 3,
+                    intArrayOf(t.sunGlowColor, Color.argb(0, 0, 0, 0)),
+                    null, Shader.TileMode.CLAMP
+                )
+                canvas.drawCircle(sunX, sunY, sunRadius * 3, paint)
+                paint.shader = null
+
+                paint.color = t.sunColor
+                canvas.drawCircle(sunX, sunY, sunRadius, paint)
+            }
+
+            renderClouds(canvas, cameraX, scale, screenWidth, t)
+            renderFarMountains(canvas, cameraX * 0.15f, scale, screenWidth, t)
+            renderNearMountains(canvas, cameraX * 0.3f, scale, screenWidth, t)
+            renderTrees(canvas, cameraX * 0.6f, scale, screenWidth, t)
+        }
+
+        renderGround(canvas, cameraX, scale, screenWidth, screenHeight, t)
+        renderPlatforms(canvas, cameraX, scale, screenWidth, t)
+    }
+
+    // ---- Pixel-art parallax backdrop (Admurin biomes + Vircon32, CC-BY) ----
+    private val bgPaint = Paint()               // no filter: crisp nearest-neighbour upscale
+    private val bgSrc = Rect()
+    private val bgDst = RectF()
+
+    /**
+     * Map each of the 20 level themes to a parallax biome. City (Neon) and
+     * space (Orbital/Void) still use placeholders until those packs are added.
+     */
+    private fun themeBiome(level: Int): String = when (level) {
+        1 -> "plains"       // Forest Dawn
+        2 -> "desert"       // Desert Storm
+        3 -> "snowy"        // Frozen Peaks
+        4 -> "cave"         // Volcanic Depths
+        5 -> "city"         // Neon City
+        6 -> "cave"         // Sunken Ruins   (dock biome composites poorly; cave fits)
+        7 -> "plains"       // Sky Fortress
+        8 -> "deadforest"   // Haunted Swamp
+        9 -> "cave"         // Crystal Caverns
+        10 -> "deadforest"  // Final Assault
+        11 -> "deadforest"  // Toxic Wasteland
+        12 -> "cave"        // Abyssal Trench
+        13 -> "cave"        // Molten Core
+        14 -> "snowy"       // Aurora Tundra
+        15 -> "space"       // Orbital Station
+        16 -> "deadforest"  // Blood Marsh
+        17 -> "desert"      // Golden Dunes
+        18 -> "void"        // Void Nebula
+        19 -> "deadforest"  // Ashen Battlefield
+        20 -> "cave"        // Dragon's Throne
+        else -> "plains"
+    }
+
+    private fun renderParallax(
+        canvas: Canvas, cameraX: Float, scale: Float, screenWidth: Int, screenHeight: Int
+    ): Boolean {
+        if (!Sprites.ready) return false
+        Sprites.loadBackground(themeBiome(currentLevel))
+        val n = Sprites.bgLayerCount()
+        if (n == 0) return false
+
+        // Sky-gradient base: shows through biomes whose back layer is transparent
+        // at the top (e.g. dock), and tints the whole scene toward the theme.
         if (screenWidth != lastScreenWidth || screenHeight != lastScreenHeight) {
-            createGradients(screenWidth, screenHeight, t)
+            createGradients(screenWidth, screenHeight, theme)
             lastScreenWidth = screenWidth
             lastScreenHeight = screenHeight
         }
-
-        // Sky
         paint.shader = skyGradient
         canvas.drawRect(0f, 0f, screenWidth.toFloat(), screenHeight.toFloat(), paint)
         paint.shader = null
 
-        // Sun
-        if (t.showSun) {
-            val sunX = screenWidth * 0.8f - cameraX * 0.05f * scale
-            val sunY = screenHeight * 0.15f
-            val sunRadius = 40f * scale
-
-            paint.shader = RadialGradient(
-                sunX, sunY, sunRadius * 3,
-                intArrayOf(t.sunGlowColor, Color.argb(0, 0, 0, 0)),
-                null, Shader.TileMode.CLAMP
-            )
-            canvas.drawCircle(sunX, sunY, sunRadius * 3, paint)
-            paint.shader = null
-
-            paint.color = t.sunColor
-            canvas.drawCircle(sunX, sunY, sunRadius, paint)
+        val h = screenHeight.toFloat()
+        for (i in 0 until n) {
+            val bmp = Sprites.bgLayer(i) ?: continue
+            // Spread parallax speed from slow (back) to fast (front).
+            val frac = if (n <= 1) 0f else i.toFloat() / (n - 1)
+            val factor = 0.05f + frac * 0.75f
+            val tileW = h * bmp.width / bmp.height          // full-height, aspect-preserved
+            if (tileW <= 0f) continue
+            val off = (cameraX * factor * scale) % tileW
+            bgSrc.set(0, 0, bmp.width, bmp.height)
+            var x = -off
+            while (x < screenWidth) {
+                bgDst.set(x, 0f, x + tileW, h)
+                canvas.drawBitmap(bmp, bgSrc, bgDst, bgPaint)
+                x += tileW
+            }
         }
-
-        renderClouds(canvas, cameraX, scale, screenWidth, t)
-        renderFarMountains(canvas, cameraX * 0.15f, scale, screenWidth, t)
-        renderNearMountains(canvas, cameraX * 0.3f, scale, screenWidth, t)
-        renderTrees(canvas, cameraX * 0.6f, scale, screenWidth, t)
-        renderGround(canvas, cameraX, scale, screenWidth, screenHeight, t)
-        renderPlatforms(canvas, cameraX, scale, screenWidth, t)
+        return true
     }
 
     private fun createGradients(screenWidth: Int, screenHeight: Int, t: LevelTheme) {

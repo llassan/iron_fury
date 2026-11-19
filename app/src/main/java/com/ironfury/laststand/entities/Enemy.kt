@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import com.ironfury.laststand.utils.Direction
 import com.ironfury.laststand.utils.Vector2
@@ -138,12 +139,25 @@ class Enemy(
         val w = width * scale
         val h = height * scale
 
-        canvas.save()
-
-        // Flip based on aim direction
+        // Flip based on aim direction (computed early for the sprite path too).
         val facingRight = aimDirection == Direction.RIGHT ||
                          aimDirection == Direction.UP_RIGHT ||
                          aimDirection == Direction.DOWN_RIGHT
+
+        // === Pixel-art sprite path (Fierce Soldier enemy). Falls through to vector. ===
+        if (Sprites.ready) {
+            val bmp = Sprites.enemy("walk${((animTime * 6f).toInt()) % 2}")
+            if (bmp != null) {
+                val feetY = screenY + h
+                val cx = screenX + w / 2f
+                val targetHpx = Constants.ENEMY_HEIGHT * 1.3f * scale
+                Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
+                return
+            }
+        }
+
+        canvas.save()
+
         if (!facingRight) {
             canvas.scale(-1f, 1f, screenX + w / 2, screenY + h / 2)
         }
