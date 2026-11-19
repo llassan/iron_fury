@@ -1,6 +1,6 @@
 Big visual + controls update!
 • Redesigned sleek translucent on-screen controls
 • The gun in your hands now matches your selected weapon
-• Punchy new firing + weapon-specific enemy death effects
+• Press DOWN to go prone (lie flat and shoot)
+• Punchy firing + weapon-specific enemy death effects
 • Cleaner HUD: framed lives, score and progress bar
-• Smoother damage feedback

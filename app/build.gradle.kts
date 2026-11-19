@@ -23,8 +23,8 @@ android {
         applicationId = "com.ironfury.laststand"
         minSdk = 24
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.1.2"
+        versionCode = 14
+        versionName = "1.1.3"
     }
 
     signingConfigs {
