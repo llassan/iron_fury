@@ -60,27 +60,34 @@ object Sprites {
 
     private var assets: android.content.res.AssetManager? = null
 
-    // One biome's 4 parallax layers kept in memory at a time (back=0 .. front=3).
+    // One biome's parallax layers kept in memory at a time, back (0) to front.
+    // Layer count varies per biome (Admurin: 6-9, Vircon32: 4), so this is a list.
     private var bgBiome: String? = null
-    private val bgLayers = arrayOfNulls<Bitmap>(4)
+    private var bgLayers: List<Bitmap> = emptyList()
 
-    /** Decode the 4 parallax layers for [biome] on demand; only one biome resident. */
+    /** Decode all layers for [biome] from backgrounds/<biome>/<n>.png (0=back). */
     fun loadBackground(biome: String) {
         if (biome == bgBiome) return
         val am = assets ?: return
-        for (i in 0 until 4) {
-            bgLayers[i] = try {
-                am.open("backgrounds/${biome}_${i + 1}.png").use { BitmapFactory.decodeStream(it) }
+        val list = ArrayList<Bitmap>()
+        var i = 0
+        while (i < 16) {
+            val bmp = try {
+                am.open("backgrounds/$biome/$i.png").use { BitmapFactory.decodeStream(it) }
             } catch (e: java.io.IOException) {
                 null
-            }
+            } ?: break
+            list.add(bmp)
+            i++
         }
         // No recycle(): the render thread may still hold the previous biome's bitmaps.
+        bgLayers = list
         bgBiome = biome
     }
 
+    fun bgLayerCount(): Int = bgLayers.size
     fun bgLayer(i: Int): Bitmap? = bgLayers.getOrNull(i)
-    fun hasBackground(): Boolean = bgLayers[0] != null
+    fun hasBackground(): Boolean = bgLayers.isNotEmpty()
 
     fun load(context: Context) {
         if (ready) return

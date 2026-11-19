@@ -1003,17 +1003,37 @@ class Level(levelNumber: Int = 1) {
         renderPlatforms(canvas, cameraX, scale, screenWidth, t)
     }
 
-    // ---- Pixel-art parallax backdrop (Vircon32 "Multilayer Scroll Backgrounds") ----
+    // ---- Pixel-art parallax backdrop (Admurin biomes + Vircon32, CC-BY) ----
     private val bgPaint = Paint()               // no filter: crisp nearest-neighbour upscale
     private val bgSrc = Rect()
     private val bgDst = RectF()
-    // Back-to-front scroll multipliers: sky barely moves, foreground moves most.
-    private val parallaxFactors = floatArrayOf(0.05f, 0.2f, 0.45f, 0.7f)
 
-    /** Map each level theme to one of the two base biomes (graded per-theme comes next). */
+    /**
+     * Map each of the 20 level themes to a parallax biome. City (Neon) and
+     * space (Orbital/Void) still use placeholders until those packs are added.
+     */
     private fun themeBiome(level: Int): String = when (level) {
-        2, 4, 10, 13, 17, 19, 20 -> "desert"   // desert / volcanic / dunes / ashen / final
-        else -> "tropical"                      // forest / temperate / everything else for now
+        1 -> "plains"       // Forest Dawn
+        2 -> "desert"       // Desert Storm
+        3 -> "snowy"        // Frozen Peaks
+        4 -> "cave"         // Volcanic Depths
+        5 -> "cave"         // Neon City       (TODO: city pack)
+        6 -> "cave"         // Sunken Ruins   (dock biome composites poorly; cave fits)
+        7 -> "plains"       // Sky Fortress
+        8 -> "deadforest"   // Haunted Swamp
+        9 -> "cave"         // Crystal Caverns
+        10 -> "deadforest"  // Final Assault
+        11 -> "deadforest"  // Toxic Wasteland
+        12 -> "cave"        // Abyssal Trench
+        13 -> "cave"        // Molten Core
+        14 -> "snowy"       // Aurora Tundra
+        15 -> "cave"        // Orbital Station  (TODO: space pack)
+        16 -> "deadforest"  // Blood Marsh
+        17 -> "desert"      // Golden Dunes
+        18 -> "cave"        // Void Nebula      (TODO: space pack)
+        19 -> "deadforest"  // Ashen Battlefield
+        20 -> "cave"        // Dragon's Throne
+        else -> "plains"
     }
 
     private fun renderParallax(
@@ -1021,14 +1041,29 @@ class Level(levelNumber: Int = 1) {
     ): Boolean {
         if (!Sprites.ready) return false
         Sprites.loadBackground(themeBiome(currentLevel))
-        if (!Sprites.hasBackground()) return false
+        val n = Sprites.bgLayerCount()
+        if (n == 0) return false
+
+        // Sky-gradient base: shows through biomes whose back layer is transparent
+        // at the top (e.g. dock), and tints the whole scene toward the theme.
+        if (screenWidth != lastScreenWidth || screenHeight != lastScreenHeight) {
+            createGradients(screenWidth, screenHeight, theme)
+            lastScreenWidth = screenWidth
+            lastScreenHeight = screenHeight
+        }
+        paint.shader = skyGradient
+        canvas.drawRect(0f, 0f, screenWidth.toFloat(), screenHeight.toFloat(), paint)
+        paint.shader = null
 
         val h = screenHeight.toFloat()
-        for (i in 0 until 4) {
+        for (i in 0 until n) {
             val bmp = Sprites.bgLayer(i) ?: continue
+            // Spread parallax speed from slow (back) to fast (front).
+            val frac = if (n <= 1) 0f else i.toFloat() / (n - 1)
+            val factor = 0.05f + frac * 0.75f
             val tileW = h * bmp.width / bmp.height          // full-height, aspect-preserved
             if (tileW <= 0f) continue
-            val off = (cameraX * parallaxFactors[i] * scale) % tileW
+            val off = (cameraX * factor * scale) % tileW
             bgSrc.set(0, 0, bmp.width, bmp.height)
             var x = -off
             while (x < screenWidth) {
