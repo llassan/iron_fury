@@ -3,9 +3,12 @@ package com.ironfury.laststand.input
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.RectF
 import android.view.KeyEvent
 import android.view.MotionEvent
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import com.ironfury.laststand.utils.SettingsManager
 
@@ -200,24 +203,54 @@ class TouchController(
         return false
     }
 
-    fun render(canvas: Canvas) {
-        val alpha = Constants.CONTROL_ALPHA
+    // Sprite control paints (Kenney on-screen controls, tinted).
+    private val ctrlDst = RectF()
+    private val dpadPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val jumpPaint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
+        colorFilter = PorterDuffColorFilter(Color.rgb(90, 180, 245), PorterDuff.Mode.MULTIPLY)
+    }
+    private val firePaint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
+        colorFilter = PorterDuffColorFilter(Color.rgb(235, 80, 80), PorterDuff.Mode.MULTIPLY)
+    }
 
-        // D-Pad background
+    fun render(canvas: Canvas) {
+        val dpad = Sprites.dpadSprite
+        val btn = Sprites.buttonSprite
+        if (dpad != null && btn != null) {
+            // D-pad (arrows baked into the sprite); brighter when a direction is held.
+            dpadPaint.alpha = if (left || right || up || down) 235 else 155
+            val r = dpadRadius
+            ctrlDst.set(dpadCenterX - r, dpadCenterY - r, dpadCenterX + r, dpadCenterY + r)
+            canvas.drawBitmap(dpad, null, ctrlDst, dpadPaint)
+
+            drawSpriteButton(canvas, btn, jumpButton, jumpPaint, jump, "JUMP")
+            drawSpriteButton(canvas, btn, fireButton, firePaint, fire, "FIRE")
+            return
+        }
+
+        // ---- Fallback: original code-drawn controls ----
+        val alpha = Constants.CONTROL_ALPHA
         paint.color = Color.argb(alpha / 2, 50, 50, 50)
         canvas.drawCircle(dpadCenterX, dpadCenterY, dpadRadius, paint)
-
-        // D-Pad directions
         val arrowSize = dpadRadius * 0.35f
         val arrowDist = dpadRadius * 0.5f
         drawArrow(canvas, dpadCenterX - arrowDist, dpadCenterY, arrowSize, 180f, left)
         drawArrow(canvas, dpadCenterX + arrowDist, dpadCenterY, arrowSize, 0f, right)
         drawArrow(canvas, dpadCenterX, dpadCenterY - arrowDist, arrowSize, 270f, up)
         drawArrow(canvas, dpadCenterX, dpadCenterY + arrowDist, arrowSize, 90f, down)
-
-        // Buttons
         drawButton(canvas, jumpButton, "JUMP", jump)
         drawButton(canvas, fireButton, "FIRE", fire)
+    }
+
+    private fun drawSpriteButton(canvas: Canvas, bmp: android.graphics.Bitmap, rect: RectF, p: Paint, pressed: Boolean, label: String) {
+        p.alpha = if (pressed) 255 else 180
+        ctrlDst.set(rect)
+        canvas.drawBitmap(bmp, null, ctrlDst, p)
+        labelPaint.color = Color.WHITE
+        labelPaint.setShadowLayer(3f, 1f, 1f, Color.argb(200, 0, 0, 0))
+        labelPaint.textSize = rect.height() * 0.2f
+        canvas.drawText(label, rect.centerX(), rect.centerY() + labelPaint.textSize * 0.35f, labelPaint)
+        labelPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
     }
 
     private fun drawArrow(canvas: Canvas, cx: Float, cy: Float, size: Float, rotation: Float, pressed: Boolean) {

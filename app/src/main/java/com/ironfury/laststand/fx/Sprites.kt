@@ -151,8 +151,15 @@ object Sprites {
             muzzleFrames = frames
         }
 
+        // On-screen controls (Kenney, CC0).
+        dpadSprite = decodeAsset(context.assets, "controls/dpad.png")
+        buttonSprite = decodeAsset(context.assets, "controls/button.png")
+
         ready = cache.isNotEmpty()
     }
+
+    var dpadSprite: Bitmap? = null; private set
+    var buttonSprite: Bitmap? = null; private set
 
     private var explosionFrames: List<Bitmap> = emptyList()
     private var muzzleFrames: List<Bitmap> = emptyList()

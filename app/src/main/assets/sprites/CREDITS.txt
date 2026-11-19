@@ -37,3 +37,6 @@ Iron Fury: Last Stand — art asset credits
 
 "Explosion 7" (explosion animation) — CC0 — https://opengameart.org/content/explosion-7
 "Muzzle Flash Particle Sheet" (muzzle flash) — CC0 — https://opengameart.org/content/muzzle-flash-particle-sheet
+
+"Onscreen Controls" (touch D-pad + buttons) — CC0 — Kenney
+  https://opengameart.org/content/onscreen-controls-8-styles
