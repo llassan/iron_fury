@@ -287,29 +287,37 @@ class Player : Entity(
                 val targetHpx = Constants.PLAYER_HEIGHT * 1.2f * scale
                 Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
 
-                // Muzzle flash: crisp directional burst at the gun tip while firing,
-                // strobing + flickering so it reads as rapid muzzle fire.
+                // Per-weapon held gun overlaid on the sprite's hands so switching
+                // weapons visibly changes the gun (the sprite's own rifle is covered).
+                val fwd = Vector2.direction(aimDirection)
+                var gpx = -fwd.y; var gpy = fwd.x
+                if (gpy < 0f) { gpx = -gpx; gpy = -gpy }
+                val gw = targetHpx * 0.5f
+                val ox = cx + fwd.x * gw * 0.12f
+                val oy = feetY - targetHpx * (if (isProne) 0.30f else 0.46f)
+                val barrel = when (currentWeapon) {
+                    WeaponType.MACHINE_GUN -> { drawMachineGun(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 1.28f }
+                    WeaponType.SPREAD_GUN -> { drawSpreadGun(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 0.95f }
+                    WeaponType.LASER -> { drawLaser(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 0.98f }
+                    WeaponType.ROCKET_LAUNCHER -> { drawRocketLauncher(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 0.88f }
+                    WeaponType.FLAMETHROWER -> { drawFlamethrower(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale, ox - fwd.x * gw * 0.3f, oy); 0.80f }
+                }
+
+                // Muzzle flash at the gun barrel tip while firing (strobing hot burst).
                 if (firing && ((animTime * 22f).toInt() % 2 == 0)) {
-                    val sp = getBulletSpawnPosition()
-                    val mx = (sp.x - cameraX) * scale
-                    val my = sp.y * scale
-                    val aim = Vector2.direction(aimDirection)
-                    val fr = 0.85f + (animTime * 40f % 1f) * 0.35f
-                    val baseR = 5.5f * scale * fr
-                    val perpX = -aim.y; val perpY = aim.x
-                    val len = 17f * scale * fr
-                    // Orange glow
+                    val mx = ox + fwd.x * gw * barrel
+                    val my = oy + fwd.y * gw * barrel
+                    val frk = 0.85f + (animTime * 40f % 1f) * 0.35f
+                    val baseR = 5.5f * scale * frk
                     paint.color = android.graphics.Color.argb(150, 255, 150, 40)
                     canvas.drawCircle(mx, my, baseR * 1.8f, paint)
-                    // Forward flare (triangle pointing along aim)
                     gunPath.reset()
-                    gunPath.moveTo(mx + aim.x * len, my + aim.y * len)
-                    gunPath.lineTo(mx + perpX * baseR, my + perpY * baseR)
-                    gunPath.lineTo(mx - perpX * baseR, my - perpY * baseR)
+                    gunPath.moveTo(mx + fwd.x * 16f * scale * frk, my + fwd.y * 16f * scale * frk)
+                    gunPath.lineTo(mx + gpx * baseR, my + gpy * baseR)
+                    gunPath.lineTo(mx - gpx * baseR, my - gpy * baseR)
                     gunPath.close()
                     paint.color = android.graphics.Color.argb(225, 255, 205, 85)
                     canvas.drawPath(gunPath, paint)
-                    // White-hot core
                     paint.color = android.graphics.Color.argb(235, 255, 245, 205)
                     canvas.drawCircle(mx, my, baseR * 0.85f, paint)
                 }
