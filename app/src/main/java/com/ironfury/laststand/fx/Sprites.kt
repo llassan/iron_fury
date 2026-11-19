@@ -58,6 +58,12 @@ object Sprites {
         "victory" to intArrayOf(292, 175, 337, 260)
     )
 
+    // ---- Enemy soldier frames on enemies_sheet.png (2-frame walk/aim, face left) ----
+    private val enemyRects: Map<String, IntArray> = mapOf(
+        "walk0" to intArrayOf(6, 5, 63, 89),
+        "walk1" to intArrayOf(65, 5, 125, 89)
+    )
+
     private var assets: android.content.res.AssetManager? = null
 
     // One biome's parallax layers kept in memory at a time, back (0) to front.
@@ -109,10 +115,29 @@ object Sprites {
                 cache["hero_$name"] = Bitmap.createBitmap(hero, r[0], r[1], w, h)
             }
         }
+
+        // Enemy soldiers (Fierce Soldier enemy sheet). They face LEFT in the sheet,
+        // so pre-flip to face RIGHT — same base orientation as the hero, so the one
+        // drawFeetAnchored() facing-flip rule works for both.
+        val enemySheet = decodeAsset(context.assets, "sprites/fierce/enemies_sheet.png")
+        if (enemySheet != null) {
+            val flip = android.graphics.Matrix().apply { preScale(-1f, 1f) }
+            for ((name, r) in enemyRects) {
+                val w = r[2] - r[0]
+                val h = r[3] - r[1]
+                if (w <= 0 || h <= 0) continue
+                runCatching {
+                    val sub = Bitmap.createBitmap(enemySheet, r[0], r[1], w, h)
+                    cache["enemy_$name"] = Bitmap.createBitmap(sub, 0, 0, w, h, flip, false)
+                }
+            }
+        }
+
         ready = cache.isNotEmpty()
     }
 
     fun hero(name: String): Bitmap? = cache["hero_$name"]
+    fun enemy(name: String): Bitmap? = cache["enemy_$name"]
 
     /**
      * Draw [bmp] so its bottom edge sits at ([cx], [feetY]) in screen pixels and its
