@@ -233,12 +233,13 @@ class TouchController(
             canvas.drawCircle(cx, cy, r * 1.4f, cGlow)
             cGlow.shader = null
         }
-        // Glass body: lighter top, darker bottom.
+        // Glass body: lighter top, darker bottom. Kept subtle/see-through so it
+        // doesn't cover the gameplay; brightens noticeably while pressed.
         cFill.shader = RadialGradient(
             cx, cy - r * 0.35f, r * 1.25f,
             intArrayOf(
-                Color.argb(if (pressed) 165 else 120, 60, 70, 92),
-                Color.argb(if (pressed) 135 else 90, 16, 19, 30)
+                Color.argb(if (pressed) 140 else 62, 60, 70, 92),
+                Color.argb(if (pressed) 110 else 40, 16, 19, 30)
             ),
             null, Shader.TileMode.CLAMP
         )
@@ -247,7 +248,7 @@ class TouchController(
         // Accent ring.
         cRing.strokeWidth = r * 0.085f
         cRing.color = if (pressed) accent
-        else Color.argb(170, Color.red(accent), Color.green(accent), Color.blue(accent))
+        else Color.argb(110, Color.red(accent), Color.green(accent), Color.blue(accent))
         canvas.drawCircle(cx, cy, r * 0.94f, cRing)
     }
 
@@ -260,7 +261,7 @@ class TouchController(
         drawChevron(canvas, cx + d, cy, s, 0f, right)
         drawChevron(canvas, cx, cy - d, s, 270f, up)
         drawChevron(canvas, cx, cy + d, s, 90f, down)
-        cFill.color = Color.argb(90, 210, 220, 235)
+        cFill.color = Color.argb(60, 210, 220, 235)
         canvas.drawCircle(cx, cy, r * 0.08f, cFill)
     }
 
@@ -268,7 +269,7 @@ class TouchController(
     private fun drawChevron(canvas: Canvas, cx: Float, cy: Float, size: Float, rot: Float, pressed: Boolean) {
         cIcon.style = Paint.Style.STROKE
         cIcon.strokeWidth = size * 0.34f
-        cIcon.color = if (pressed) accentJump else Color.argb(205, 225, 232, 245)
+        cIcon.color = if (pressed) accentJump else Color.argb(150, 225, 232, 245)
         canvas.save()
         canvas.rotate(rot, cx, cy)
         iPath.reset()
@@ -284,7 +285,7 @@ class TouchController(
         val cx = rect.centerX(); val cy = rect.centerY()
         val r = minOf(rect.width(), rect.height()) / 2f * 0.9f
         glassDisc(canvas, cx, cy, r, accent, pressed)
-        cIcon.color = if (pressed) Color.WHITE else Color.argb(235, 236, 242, 252)
+        cIcon.color = if (pressed) Color.WHITE else Color.argb(175, 236, 242, 252)
         when (icon) {
             ICON_JUMP -> {
                 // Upward double-chevron (jump).
