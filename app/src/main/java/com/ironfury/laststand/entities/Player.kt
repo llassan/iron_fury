@@ -286,6 +286,19 @@ class Player : Entity(
                 val cx = screenX + w / 2f
                 val targetHpx = Constants.PLAYER_HEIGHT * 1.2f * scale
                 Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
+
+                // Muzzle flash at the gun tip while firing.
+                if (firing && Sprites.muzzleFrameCount > 0) {
+                    val sp = getBulletSpawnPosition()
+                    val mf = Sprites.muzzleFrame((animTime * 30f).toInt() % Sprites.muzzleFrameCount)
+                    if (mf != null) {
+                        Sprites.drawCentered(
+                            canvas, mf,
+                            (sp.x - cameraX) * scale, sp.y * scale,
+                            24f * scale, tint = android.graphics.Color.rgb(255, 225, 130)
+                        )
+                    }
+                }
                 return
             }
         }

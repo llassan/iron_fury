@@ -133,7 +133,48 @@ object Sprites {
             }
         }
 
+        // FX sheets: explosion (10x5 grid of 100x100 = 50 frames) + muzzle (4x square).
+        decodeAsset(context.assets, "sprites/fx/explosion.png")?.let { sheet ->
+            val cols = 10; val rows = 5
+            val fw = sheet.width / cols; val fh = sheet.height / rows
+            val frames = ArrayList<Bitmap>()
+            for (r in 0 until rows) for (c in 0 until cols) {
+                runCatching { frames.add(Bitmap.createBitmap(sheet, c * fw, r * fh, fw, fh)) }
+            }
+            explosionFrames = frames
+        }
+        decodeAsset(context.assets, "sprites/fx/muzzle.png")?.let { sheet ->
+            val fw = sheet.height
+            val n = (sheet.width / fw).coerceAtLeast(1)
+            val frames = ArrayList<Bitmap>()
+            for (i in 0 until n) runCatching { frames.add(Bitmap.createBitmap(sheet, i * fw, 0, fw, sheet.height)) }
+            muzzleFrames = frames
+        }
+
         ready = cache.isNotEmpty()
+    }
+
+    private var explosionFrames: List<Bitmap> = emptyList()
+    private var muzzleFrames: List<Bitmap> = emptyList()
+    val explosionFrameCount: Int get() = explosionFrames.size
+    fun explosionFrame(i: Int): Bitmap? = explosionFrames.getOrNull(i)
+    val muzzleFrameCount: Int get() = muzzleFrames.size
+    fun muzzleFrame(i: Int): Bitmap? = muzzleFrames.getOrNull(i)
+
+    private val tintPaint = Paint()
+
+    /** Draw [bmp] centred on ([cx],[cy]) at [sizePx] tall, optionally rotated/tinted. */
+    fun drawCentered(canvas: Canvas, bmp: Bitmap, cx: Float, cy: Float, sizePx: Float, rotationDeg: Float = 0f, tint: Int? = null) {
+        val aspect = bmp.width.toFloat() / bmp.height
+        val h = sizePx; val w = sizePx * aspect
+        src.set(0, 0, bmp.width, bmp.height)
+        dst.set(cx - w / 2f, cy - h / 2f, cx + w / 2f, cy + h / 2f)
+        val p = if (tint != null) tintPaint.apply { colorFilter = PorterDuffColorFilter(tint, PorterDuff.Mode.SRC_ATOP) } else paint
+        if (rotationDeg != 0f) {
+            canvas.save(); canvas.rotate(rotationDeg, cx, cy); canvas.drawBitmap(bmp, src, dst, p); canvas.restore()
+        } else {
+            canvas.drawBitmap(bmp, src, dst, p)
+        }
     }
 
     fun hero(name: String): Bitmap? = cache["hero_$name"]

@@ -34,3 +34,6 @@ Iron Fury: Last Stand — art asset credits
   Author : ansimuz
   License: CC-BY 3.0
   Used for: Neon City backdrop (assets/backgrounds/city/).
+
+"Explosion 7" (explosion animation) — CC0 — https://opengameart.org/content/explosion-7
+"Muzzle Flash Particle Sheet" (muzzle flash) — CC0 — https://opengameart.org/content/muzzle-flash-particle-sheet

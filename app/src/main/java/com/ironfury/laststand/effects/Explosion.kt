@@ -3,6 +3,7 @@ package com.ironfury.laststand.effects
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Vector2
 
 class Explosion(
@@ -60,6 +61,18 @@ class Explosion(
         val screenX = (position.x - cameraX) * scale
         val screenY = position.y * scale
         val progress = timer / duration
+
+        // === Sprite explosion animation (falls through to the particle burst below) ===
+        val fxCount = Sprites.explosionFrameCount
+        if (fxCount > 0) {
+            val idx = (progress * fxCount).toInt().coerceIn(0, fxCount - 1)
+            val frame = Sprites.explosionFrame(idx)
+            if (frame != null) {
+                // Draw ~3x the blast radius so the fireball reads big.
+                Sprites.drawCentered(canvas, frame, screenX, screenY, maxRadius * 3f * scale)
+                return
+            }
+        }
 
         // Main explosion flash (fades out)
         val flashAlpha = ((1f - progress) * 255).toInt().coerceIn(0, 255)
