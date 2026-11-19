@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import com.ironfury.laststand.cosmetics.CharacterSkin
 import com.ironfury.laststand.effects.Explosion
 import com.ironfury.laststand.entities.Boss
@@ -795,45 +796,50 @@ class GameState(private val context: Context) {
         val progress = ((player.position.x - startX) / (bossX - startX)).coerceIn(0f, 1f)
 
         val sw = screenWidth.toFloat()
-        val barW = sw * 0.32f
-        val barH = 8f * scale
+        val barW = sw * 0.30f
+        val barH = 9f * scale
         val barLeft = (sw - barW) / 2f
-        val barTop = screenHeight - 28f * scale
-        val labelOffset = 6f * scale
+        val barTop = screenHeight - 26f * scale
+        val rad = barH / 2f
+        progressPaint.isAntiAlias = true
+
+        // Track (glass) + thin edge
+        progressPaint.style = Paint.Style.FILL
+        progressPaint.color = Color.argb(170, 12, 16, 26)
+        canvas.drawRoundRect(barLeft, barTop, barLeft + barW, barTop + barH, rad, rad, progressPaint)
+
+        // Fill (cyan gradient) up to progress
+        if (progress > 0f) {
+            val fillW = (barW * progress).coerceAtLeast(barH)
+            progressPaint.shader = android.graphics.LinearGradient(
+                barLeft, 0f, barLeft + fillW, 0f,
+                Color.rgb(60, 180, 240), Color.rgb(120, 240, 255),
+                Shader.TileMode.CLAMP
+            )
+            canvas.drawRoundRect(barLeft, barTop, barLeft + fillW, barTop + barH, rad, rad, progressPaint)
+            progressPaint.shader = null
+            // Leading dot
+            progressPaint.color = Color.WHITE
+            canvas.drawCircle(barLeft + fillW, barTop + barH / 2f, barH * 0.55f, progressPaint)
+        }
+        // Edge
+        progressPaint.style = Paint.Style.STROKE
+        progressPaint.strokeWidth = 1.4f * scale
+        progressPaint.color = Color.argb(120, 150, 210, 255)
+        canvas.drawRoundRect(barLeft, barTop, barLeft + barW, barTop + barH, rad, rad, progressPaint)
+        progressPaint.style = Paint.Style.FILL
 
         // Labels
         progressPaint.typeface = pixelFont
-        progressPaint.textSize = 8f * scale
+        progressPaint.textSize = 7f * scale
+        progressPaint.setShadowLayer(2f, 1f, 1f, Color.argb(200, 0, 0, 0))
         progressPaint.textAlign = Paint.Align.RIGHT
-        progressPaint.color = Color.argb(180, 90, 220, 255)
-        canvas.drawText("START", barLeft - labelOffset, barTop + barH * 0.85f, progressPaint)
+        progressPaint.color = Color.rgb(120, 220, 255)
+        canvas.drawText("START", barLeft - 8f * scale, barTop + barH * 0.85f, progressPaint)
         progressPaint.textAlign = Paint.Align.LEFT
-        progressPaint.color = Color.argb(180, 255, 90, 90)
-        canvas.drawText("BOSS", barLeft + barW + labelOffset, barTop + barH * 0.85f, progressPaint)
-
-        // Track (dim segments)
-        val segments = 12
-        val segGap = 2f * scale
-        val segW = (barW - segGap * (segments - 1)) / segments
-        val filled = (progress * segments).toInt().coerceAtMost(segments)
-        for (i in 0 until segments) {
-            val x = barLeft + i * (segW + segGap)
-            progressPaint.color = if (i < filled) {
-                Color.rgb(90, 220, 255)
-            } else {
-                Color.argb(80, 90, 220, 255)
-            }
-            canvas.drawRect(x, barTop, x + segW, barTop + barH, progressPaint)
-        }
-        // Partial fill for current segment
-        if (filled < segments) {
-            val frac = (progress * segments) - filled
-            if (frac > 0f) {
-                val x = barLeft + filled * (segW + segGap)
-                progressPaint.color = Color.argb((200 * frac).toInt().coerceIn(0, 255), 90, 220, 255)
-                canvas.drawRect(x, barTop, x + segW * frac, barTop + barH, progressPaint)
-            }
-        }
+        progressPaint.color = Color.rgb(255, 110, 110)
+        canvas.drawText("BOSS", barLeft + barW + 8f * scale, barTop + barH * 0.85f, progressPaint)
+        progressPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
     }
 
     private fun drawHeart(canvas: Canvas, cx: Float, cy: Float, size: Float, paint: Paint) {
