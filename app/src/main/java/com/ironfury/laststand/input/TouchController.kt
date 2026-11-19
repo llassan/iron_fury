@@ -3,12 +3,12 @@ package com.ironfury.laststand.input
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
+import android.graphics.Path
+import android.graphics.RadialGradient
 import android.graphics.RectF
+import android.graphics.Shader
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import com.ironfury.laststand.utils.SettingsManager
 
@@ -203,100 +203,123 @@ class TouchController(
         return false
     }
 
-    // Sprite control paints (Kenney on-screen controls, tinted).
-    private val ctrlDst = RectF()
-    private val dpadPaint = Paint(Paint.FILTER_BITMAP_FLAG)
-    private val jumpPaint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-        colorFilter = PorterDuffColorFilter(Color.rgb(90, 180, 245), PorterDuff.Mode.MULTIPLY)
+    // ---- Polished custom-drawn controls (glass discs + accent rings + icons) ----
+    private val cFill = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val cRing = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val cIcon = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
     }
-    private val firePaint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-        colorFilter = PorterDuffColorFilter(Color.rgb(235, 80, 80), PorterDuff.Mode.MULTIPLY)
-    }
+    private val cGlow = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val iPath = Path()
+    private val accentJump = Color.rgb(95, 205, 255)   // cyan
+    private val accentFire = Color.rgb(255, 95, 70)    // red-orange
+    private val accentDpad = Color.rgb(170, 200, 235)  // cool white
 
     fun render(canvas: Canvas) {
-        val dpad = Sprites.dpadSprite
-        val btn = Sprites.buttonSprite
-        if (dpad != null && btn != null) {
-            // D-pad (arrows baked into the sprite); brighter when a direction is held.
-            dpadPaint.alpha = if (left || right || up || down) 235 else 155
-            val r = dpadRadius
-            ctrlDst.set(dpadCenterX - r, dpadCenterY - r, dpadCenterX + r, dpadCenterY + r)
-            canvas.drawBitmap(dpad, null, ctrlDst, dpadPaint)
+        drawDpad(canvas)
+        drawActionButton(canvas, jumpButton, accentJump, jump, ICON_JUMP)
+        drawActionButton(canvas, fireButton, accentFire, fire, ICON_FIRE)
+    }
 
-            drawSpriteButton(canvas, btn, jumpButton, jumpPaint, jump, "JUMP")
-            drawSpriteButton(canvas, btn, fireButton, firePaint, fire, "FIRE")
-            return
+    /** Translucent glass disc with a thin accent ring + optional press glow. */
+    private fun glassDisc(canvas: Canvas, cx: Float, cy: Float, r: Float, accent: Int, pressed: Boolean) {
+        if (pressed) {
+            cGlow.shader = RadialGradient(
+                cx, cy, r * 1.4f,
+                Color.argb(130, Color.red(accent), Color.green(accent), Color.blue(accent)),
+                Color.argb(0, Color.red(accent), Color.green(accent), Color.blue(accent)),
+                Shader.TileMode.CLAMP
+            )
+            canvas.drawCircle(cx, cy, r * 1.4f, cGlow)
+            cGlow.shader = null
         }
-
-        // ---- Fallback: original code-drawn controls ----
-        val alpha = Constants.CONTROL_ALPHA
-        paint.color = Color.argb(alpha / 2, 50, 50, 50)
-        canvas.drawCircle(dpadCenterX, dpadCenterY, dpadRadius, paint)
-        val arrowSize = dpadRadius * 0.35f
-        val arrowDist = dpadRadius * 0.5f
-        drawArrow(canvas, dpadCenterX - arrowDist, dpadCenterY, arrowSize, 180f, left)
-        drawArrow(canvas, dpadCenterX + arrowDist, dpadCenterY, arrowSize, 0f, right)
-        drawArrow(canvas, dpadCenterX, dpadCenterY - arrowDist, arrowSize, 270f, up)
-        drawArrow(canvas, dpadCenterX, dpadCenterY + arrowDist, arrowSize, 90f, down)
-        drawButton(canvas, jumpButton, "JUMP", jump)
-        drawButton(canvas, fireButton, "FIRE", fire)
+        // Glass body: lighter top, darker bottom.
+        cFill.shader = RadialGradient(
+            cx, cy - r * 0.35f, r * 1.25f,
+            intArrayOf(
+                Color.argb(if (pressed) 165 else 120, 60, 70, 92),
+                Color.argb(if (pressed) 135 else 90, 16, 19, 30)
+            ),
+            null, Shader.TileMode.CLAMP
+        )
+        canvas.drawCircle(cx, cy, r, cFill)
+        cFill.shader = null
+        // Accent ring.
+        cRing.strokeWidth = r * 0.085f
+        cRing.color = if (pressed) accent
+        else Color.argb(170, Color.red(accent), Color.green(accent), Color.blue(accent))
+        canvas.drawCircle(cx, cy, r * 0.94f, cRing)
     }
 
-    private fun drawSpriteButton(canvas: Canvas, bmp: android.graphics.Bitmap, rect: RectF, p: Paint, pressed: Boolean, label: String) {
-        p.alpha = if (pressed) 255 else 180
-        ctrlDst.set(rect)
-        canvas.drawBitmap(bmp, null, ctrlDst, p)
-        labelPaint.color = Color.WHITE
-        labelPaint.setShadowLayer(3f, 1f, 1f, Color.argb(200, 0, 0, 0))
-        labelPaint.textSize = rect.height() * 0.2f
-        canvas.drawText(label, rect.centerX(), rect.centerY() + labelPaint.textSize * 0.35f, labelPaint)
-        labelPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
+    private fun drawDpad(canvas: Canvas) {
+        val cx = dpadCenterX; val cy = dpadCenterY; val r = dpadRadius * 0.92f
+        glassDisc(canvas, cx, cy, r, accentDpad, left || right || up || down)
+        val d = r * 0.55f
+        val s = r * 0.3f
+        drawChevron(canvas, cx - d, cy, s, 180f, left)
+        drawChevron(canvas, cx + d, cy, s, 0f, right)
+        drawChevron(canvas, cx, cy - d, s, 270f, up)
+        drawChevron(canvas, cx, cy + d, s, 90f, down)
+        cFill.color = Color.argb(90, 210, 220, 235)
+        canvas.drawCircle(cx, cy, r * 0.08f, cFill)
     }
 
-    private fun drawArrow(canvas: Canvas, cx: Float, cy: Float, size: Float, rotation: Float, pressed: Boolean) {
-        paint.color = if (pressed) Color.argb(200, 150, 150, 255)
-        else Color.argb(Constants.CONTROL_ALPHA, 100, 100, 100)
-
+    /** A thick rounded chevron pointing right, rotated by [rot]; lit when pressed. */
+    private fun drawChevron(canvas: Canvas, cx: Float, cy: Float, size: Float, rot: Float, pressed: Boolean) {
+        cIcon.style = Paint.Style.STROKE
+        cIcon.strokeWidth = size * 0.34f
+        cIcon.color = if (pressed) accentJump else Color.argb(205, 225, 232, 245)
         canvas.save()
-        canvas.rotate(rotation, cx, cy)
-        val path = android.graphics.Path().apply {
-            moveTo(cx + size, cy)
-            lineTo(cx - size * 0.5f, cy - size * 0.7f)
-            lineTo(cx - size * 0.5f, cy + size * 0.7f)
-            close()
-        }
-        canvas.drawPath(path, paint)
+        canvas.rotate(rot, cx, cy)
+        iPath.reset()
+        iPath.moveTo(cx - size * 0.28f, cy - size * 0.62f)
+        iPath.lineTo(cx + size * 0.42f, cy)
+        iPath.lineTo(cx - size * 0.28f, cy + size * 0.62f)
+        canvas.drawPath(iPath, cIcon)
         canvas.restore()
+        cIcon.style = Paint.Style.FILL
     }
 
-    private fun drawButton(canvas: Canvas, rect: RectF, label: String, pressed: Boolean) {
-        val isFire = label == "FIRE"
-        // Inset the actual button slightly inside the touch rect so it looks
-        // compact like the design instead of filling the bbox.
-        val inset = rect.width() * 0.08f
-        val body = RectF(rect.left + inset, rect.top + inset, rect.right - inset, rect.bottom - inset)
+    private fun drawActionButton(canvas: Canvas, rect: RectF, accent: Int, pressed: Boolean, icon: Int) {
+        val cx = rect.centerX(); val cy = rect.centerY()
+        val r = minOf(rect.width(), rect.height()) / 2f * 0.9f
+        glassDisc(canvas, cx, cy, r, accent, pressed)
+        cIcon.color = if (pressed) Color.WHITE else Color.argb(235, 236, 242, 252)
+        when (icon) {
+            ICON_JUMP -> {
+                // Upward double-chevron (jump).
+                cIcon.style = Paint.Style.STROKE
+                cIcon.strokeWidth = r * 0.15f
+                iPath.reset()
+                iPath.moveTo(cx - r * 0.42f, cy + r * 0.02f)
+                iPath.lineTo(cx, cy - r * 0.42f)
+                iPath.lineTo(cx + r * 0.42f, cy + r * 0.02f)
+                canvas.drawPath(iPath, cIcon)
+                iPath.reset()
+                iPath.moveTo(cx - r * 0.42f, cy + r * 0.42f)
+                iPath.lineTo(cx, cy - r * 0.02f)
+                iPath.lineTo(cx + r * 0.42f, cy + r * 0.42f)
+                canvas.drawPath(iPath, cIcon)
+                cIcon.style = Paint.Style.FILL
+            }
+            ICON_FIRE -> {
+                // Target reticle (shoot).
+                cIcon.style = Paint.Style.STROKE
+                cIcon.strokeWidth = r * 0.11f
+                canvas.drawCircle(cx, cy, r * 0.42f, cIcon)
+                canvas.drawLine(cx - r * 0.66f, cy, cx - r * 0.3f, cy, cIcon)
+                canvas.drawLine(cx + r * 0.3f, cy, cx + r * 0.66f, cy, cIcon)
+                canvas.drawLine(cx, cy - r * 0.66f, cx, cy - r * 0.3f, cIcon)
+                canvas.drawLine(cx, cy + r * 0.3f, cx, cy + r * 0.66f, cIcon)
+                cIcon.style = Paint.Style.FILL
+                canvas.drawCircle(cx, cy, r * 0.12f, cIcon)
+            }
+        }
+    }
 
-        // Translucent body so the game world stays visible behind the controls.
-        val fillAlpha = if (pressed) 180 else 110
-        paint.color = if (isFire) Color.argb(fillAlpha, 230, 70, 70)
-                      else Color.argb(fillAlpha, 90, 190, 240)
-        canvas.drawOval(body, paint)
-
-        // Outline — slightly more opaque so the button shape is still readable
-        // against bright backgrounds.
-        strokePaint.color = if (isFire) Color.argb(220, 255, 140, 140)
-                            else Color.argb(220, 170, 220, 255)
-        strokePaint.strokeWidth = body.width() * 0.05f
-        canvas.drawOval(body, strokePaint)
-        strokePaint.color = Color.WHITE
-        strokePaint.strokeWidth = 3f
-
-        // Label — white with thin shadow so it reads on any background.
-        labelPaint.color = Color.WHITE
-        labelPaint.setShadowLayer(2f, 1f, 1f, Color.argb(180, 0, 0, 0))
-        labelPaint.textSize = body.height() * 0.22f
-        canvas.drawText(label, body.centerX(), body.centerY() + labelPaint.textSize * 0.35f, labelPaint)
-        labelPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
+    private companion object {
+        const val ICON_JUMP = 1
+        const val ICON_FIRE = 2
     }
 
     private enum class TouchType {
