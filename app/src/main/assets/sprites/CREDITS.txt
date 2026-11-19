@@ -22,3 +22,15 @@ Iron Fury: Last Stand — art asset credits
   Author : Admurin
   License: CC-BY 4.0
   Used for: per-biome parallax level backdrops (assets/backgrounds/<biome>/).
+
+"Seamless Space Backgrounds" (space/void biomes)
+  Source : https://opengameart.org/content/seamless-space-backgrounds
+  Author : Screaming Brain Studios
+  License: CC0 1.0 (public domain)
+  Used for: Orbital Station (space) + Void Nebula (void) backdrops.
+
+"Cyberpunk Street Environment" (city/neon biome)
+  Source : https://opengameart.org/content/cyberpunk-street-environment
+  Author : ansimuz
+  License: CC-BY 3.0
+  Used for: Neon City backdrop (assets/backgrounds/city/).

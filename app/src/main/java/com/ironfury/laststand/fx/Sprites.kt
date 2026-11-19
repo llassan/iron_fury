@@ -72,11 +72,10 @@ object Sprites {
         val list = ArrayList<Bitmap>()
         var i = 0
         while (i < 16) {
-            val bmp = try {
-                am.open("backgrounds/$biome/$i.png").use { BitmapFactory.decodeStream(it) }
-            } catch (e: java.io.IOException) {
-                null
-            } ?: break
+            // Layers may be .png (Admurin/Vircon32) or .webp (space backdrops).
+            val bmp = decodeAsset(am, "backgrounds/$biome/$i.png")
+                ?: decodeAsset(am, "backgrounds/$biome/$i.webp")
+                ?: break
             list.add(bmp)
             i++
         }
@@ -84,6 +83,9 @@ object Sprites {
         bgLayers = list
         bgBiome = biome
     }
+
+    private fun decodeAsset(am: android.content.res.AssetManager, path: String): Bitmap? =
+        try { am.open(path).use { BitmapFactory.decodeStream(it) } } catch (e: java.io.IOException) { null }
 
     fun bgLayerCount(): Int = bgLayers.size
     fun bgLayer(i: Int): Bitmap? = bgLayers.getOrNull(i)

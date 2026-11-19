@@ -1017,7 +1017,7 @@ class Level(levelNumber: Int = 1) {
         2 -> "desert"       // Desert Storm
         3 -> "snowy"        // Frozen Peaks
         4 -> "cave"         // Volcanic Depths
-        5 -> "cave"         // Neon City       (TODO: city pack)
+        5 -> "city"         // Neon City
         6 -> "cave"         // Sunken Ruins   (dock biome composites poorly; cave fits)
         7 -> "plains"       // Sky Fortress
         8 -> "deadforest"   // Haunted Swamp
@@ -1027,10 +1027,10 @@ class Level(levelNumber: Int = 1) {
         12 -> "cave"        // Abyssal Trench
         13 -> "cave"        // Molten Core
         14 -> "snowy"       // Aurora Tundra
-        15 -> "cave"        // Orbital Station  (TODO: space pack)
+        15 -> "space"       // Orbital Station
         16 -> "deadforest"  // Blood Marsh
         17 -> "desert"      // Golden Dunes
-        18 -> "cave"        // Void Nebula      (TODO: space pack)
+        18 -> "void"        // Void Nebula
         19 -> "deadforest"  // Ashen Battlefield
         20 -> "cave"        // Dragon's Throne
         else -> "plains"
