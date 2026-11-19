@@ -307,7 +307,7 @@ class Player : Entity(
                 if (gpy < 0f) { gpx = -gpx; gpy = -gpy }
                 val gw = targetHpx * 0.5f
                 val ox = cx + fwd.x * gw * 0.12f
-                val oy = feetY - targetHpx * (if (isProne) 0.30f else 0.46f)
+                val oy = feetY - targetHpx * 0.54f
                 val barrel = when (currentWeapon) {
                     WeaponType.MACHINE_GUN -> { drawMachineGun(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 1.28f }
                     WeaponType.SPREAD_GUN -> { drawSpreadGun(canvas, ox, oy, fwd.x, fwd.y, gpx, gpy, gw, scale); 0.95f }
