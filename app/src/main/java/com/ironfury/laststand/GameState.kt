@@ -89,6 +89,11 @@ class GameState(private val context: Context) {
         androidx.core.content.res.ResourcesCompat.getFont(context, R.font.press_start_2p)
             .also { com.ironfury.laststand.ui.UiFonts.pixel = it }
 
+    init {
+        // Load the pixel-art sprite sheets once; entities fall back to vector art if absent.
+        com.ironfury.laststand.fx.Sprites.load(context)
+    }
+
     private val hudPaint = Paint().apply {
         color = Color.WHITE
         textSize = 24f

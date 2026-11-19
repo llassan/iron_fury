@@ -1,0 +1,12 @@
+Iron Fury: Last Stand — art asset credits
+=========================================
+
+"Fierce Soldier" sprite set
+  Source : https://opengameart.org/content/fierce-soldier-sprites
+  Author : xiaocaibi (original art by Vircon32)
+  License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Used for: player commando (hero_sheet.png), soldier enemies + emplacements
+            (enemies_sheet.png), grass/dirt tileset + GUI (scenery_gui_sheet.png).
+  Changes: sheets sliced into individual frames; recoloured/graded per level theme.
+
+(Further CC0/CC-BY packs for parallax backdrops and FX will be added here as used.)

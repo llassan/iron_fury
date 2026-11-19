@@ -8,6 +8,7 @@ import android.graphics.LinearGradient
 import android.graphics.Shader
 import com.ironfury.laststand.audio.SoundManager
 import com.ironfury.laststand.cosmetics.CharacterSkin
+import com.ironfury.laststand.fx.Sprites
 import com.ironfury.laststand.utils.Constants
 import com.ironfury.laststand.utils.Direction
 import com.ironfury.laststand.utils.Vector2
@@ -250,6 +251,15 @@ class Player : Entity(
         }
     }
 
+    /** Pick the Fierce-Soldier hero frame for the current movement state. */
+    private fun selectSpriteFrame(): String {
+        if (isProne) return "prone"
+        if (!isOnGround) return "jump"
+        if (moveLeft || moveRight) return "run${((animTime * 10f).toInt()) % 4}"
+        // Idle: slow 2-frame breathing cycle.
+        return if (((animTime * 2f).toInt()) % 2 == 0) "idle0" else "idle1"
+    }
+
     override fun render(canvas: Canvas, cameraX: Float, scale: Float) {
         if (!isActive) return
 
@@ -262,6 +272,23 @@ class Player : Entity(
         val screenY = position.y * scale
         val w = width * scale
         val h = height * scale
+
+        // === Pixel-art sprite path (Fierce Soldier). Falls through to the original
+        // vector drawing below whenever the sprite sheet isn't available. ===
+        if (Sprites.ready) {
+            val bmp = Sprites.hero(selectSpriteFrame())
+            if (bmp != null) {
+                // Feet sit on the hitbox bottom (ground). Art is drawn a touch taller
+                // than the standing hitbox for head/helmet headroom; the same target
+                // height is used for every pose so the crouch/jump poses read from the
+                // art itself rather than from resizing.
+                val feetY = screenY + h
+                val cx = screenX + w / 2f
+                val targetHpx = Constants.PLAYER_HEIGHT * 1.2f * scale
+                Sprites.drawFeetAnchored(canvas, bmp, cx, feetY, targetHpx, facingRight)
+                return
+            }
+        }
 
         // Lying-down pose has its own sprite
         if (isProne) {
