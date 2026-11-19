@@ -276,6 +276,12 @@ class Player : Entity(
         if (Sprites.ready) {
             val bmp = Sprites.hero(selectSpriteFrame())
             if (bmp != null) {
+                // Prone: lie flat with the gun forward (dedicated pose, recoloured to
+                // match the Fierce hero) instead of the kneeling sprite frame.
+                if (isProne) {
+                    renderProne(canvas, screenX, screenY, w, h, scale)
+                    return
+                }
                 // Feet sit on the hitbox bottom (ground). Art is drawn a touch taller
                 // than the standing hitbox for head/helmet headroom; the same target
                 // height is used for every pose so the crouch/jump poses read from the
@@ -742,6 +748,16 @@ class Player : Entity(
     // Soldier lying on their belly, gun pointed forward along the ground.
     // Drawn relative to the short prone hitbox; limbs/gun extend past it cosmetically.
     private fun renderProne(canvas: Canvas, screenX: Float, screenY: Float, w: Float, h: Float, scale: Float) {
+        // Colours matched to the Fierce Soldier sprite so the prone pose reads as the
+        // same character as the standing sprite (these shadow the skin palette).
+        val skinColor = Color.rgb(224, 178, 136)
+        val hairColor = Color.rgb(240, 208, 70)
+        val shirtColor = Color.rgb(236, 236, 236)
+        val shirtHighlight = Color.rgb(205, 205, 205)
+        val pantsColor = Color.rgb(104, 112, 58)
+        val pantsHighlight = Color.rgb(122, 130, 70)
+        val bootsColor = Color.rgb(92, 60, 38)
+        val bandanaColor = Color.rgb(200, 45, 45)
         canvas.save()
         // Flip the whole pose to face left
         if (!facingRight) {
