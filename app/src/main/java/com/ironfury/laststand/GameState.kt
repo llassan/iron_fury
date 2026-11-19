@@ -714,54 +714,69 @@ class GameState(private val context: Context) {
         }
     }
 
+    private val hudPanelFill = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val hudPanelStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+
+    /** Rounded translucent glass HUD panel with a thin accent edge. */
+    private fun drawGlassPanel(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, rad: Float, accent: Int, scale: Float) {
+        hudPanelFill.color = Color.argb(150, 14, 16, 26)
+        canvas.drawRoundRect(l, t, r, b, rad, rad, hudPanelFill)
+        hudPanelStroke.color = Color.argb(110, Color.red(accent), Color.green(accent), Color.blue(accent))
+        hudPanelStroke.strokeWidth = 1.6f * scale
+        canvas.drawRoundRect(l, t, r, b, rad, rad, hudPanelStroke)
+    }
+
     private fun renderHUD(canvas: Canvas, screenWidth: Int, screenHeight: Int, scale: Float) {
-        hudPaint.setShadowLayer(1.5f, 1f, 1f, Color.argb(120, 0, 0, 0))
+        val pad = 7f * scale
+        val heartSize = 13f * scale
 
-        // Hearts (top left) — pixel-art chunky hearts
-        val heartSize = 14f * scale
-        val heartY = 12f * scale
-        for (i in 0 until Constants.PLAYER_MAX_LIVES) {
-            val hx = 10f * scale + i * (heartSize * 1.25f)
-            if (i < player.lives) {
-                hudPaint.color = Color.rgb(220, 40, 40)
-            } else {
-                hudPaint.color = Color.argb(60, 100, 40, 40)
-            }
-            drawHeart(canvas, hx, heartY, heartSize, hudPaint)
-        }
-
-        // Level indicator (below hearts)
+        // === Top-left glass panel: hearts + level ===
+        hudPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
         hudPaint.textSize = 7f * scale
-        hudPaint.color = Color.argb(180, 200, 220, 255)
-        canvas.drawText(
-            "LV.${"%02d".format(currentLevel)}  ${level.theme.name.uppercase()}",
-            10f * scale,
-            heartY + heartSize + 14f * scale,
-            hudPaint
-        )
+        val levelText = "LV.${"%02d".format(currentLevel)}  ${level.theme.name.uppercase()}"
+        val heartsW = Constants.PLAYER_MAX_LIVES * heartSize * 1.18f
+        val lvW = hudPaint.measureText(levelText)
+        val panelL = 8f * scale
+        val panelT = 8f * scale
+        val panelR = panelL + maxOf(heartsW, lvW) + pad * 2
+        val panelB = panelT + pad + heartSize + 6f * scale + 7f * scale + pad
+        drawGlassPanel(canvas, panelL, panelT, panelR, panelB, 6f * scale, Color.rgb(255, 70, 70), scale)
 
-        // Score (top right, under coin pill)
-        hudPaint.textSize = 8f * scale
-        hudPaint.color = Color.argb(180, 255, 255, 255)
-        hudPaint.textAlign = Paint.Align.RIGHT
-        canvas.drawText(
-            "SCORE  ${"%,d".format(player.score)}",
-            screenWidth - 14f * scale,
-            heartY + heartSize + 14f * scale,
-            hudPaint
-        )
-        hudPaint.textAlign = Paint.Align.LEFT
-
-        // Rocket ammo (below score, only when using rockets)
-        if (player.currentWeapon == WeaponType.ROCKET_LAUNCHER) {
-            hudPaint.textSize = 11f * scale
-            hudPaint.color = Color.argb(180, 255, 140, 80)
-            hudPaint.textAlign = Paint.Align.RIGHT
-            canvas.drawText("ROCKETS: ${player.rocketAmmo}/${Player.MAX_ROCKETS}", screenWidth - 12f * scale, 34f * scale, hudPaint)
-            hudPaint.textAlign = Paint.Align.LEFT
+        // Hearts
+        for (i in 0 until Constants.PLAYER_MAX_LIVES) {
+            val hx = panelL + pad + i * (heartSize * 1.18f)
+            hudPaint.color = if (i < player.lives) Color.rgb(230, 46, 46) else Color.argb(70, 110, 45, 45)
+            drawHeart(canvas, hx, panelT + pad, heartSize, hudPaint)
         }
+        // Level label
+        hudPaint.setShadowLayer(1.5f, 1f, 1f, Color.argb(160, 0, 0, 0))
+        hudPaint.textSize = 7f * scale
+        hudPaint.color = Color.argb(220, 200, 220, 255)
+        hudPaint.textAlign = Paint.Align.LEFT
+        canvas.drawText(levelText, panelL + pad, panelB - pad - 1f * scale, hudPaint)
 
-        // Weapon name is rendered by WeaponSelector itself; no duplicate label here.
+        // === Top-right glass chip: score ===
+        hudPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
+        hudPaint.textSize = 8f * scale
+        val scoreText = "SCORE  ${"%,d".format(player.score)}"
+        val scW = hudPaint.measureText(scoreText)
+        val chipR = screenWidth - 10f * scale
+        val chipL = chipR - scW - pad * 2
+        val chipT = 44f * scale    // below the coin pill drawn by WeaponSelector
+        val chipB = chipT + 8f * scale + pad * 2
+        drawGlassPanel(canvas, chipL, chipT, chipR, chipB, 6f * scale, Color.rgb(255, 210, 70), scale)
+        hudPaint.setShadowLayer(1.5f, 1f, 1f, Color.argb(160, 0, 0, 0))
+        hudPaint.color = Color.rgb(255, 225, 120)
+        hudPaint.textAlign = Paint.Align.RIGHT
+        canvas.drawText(scoreText, chipR - pad, chipB - pad - 1.5f * scale, hudPaint)
+
+        // Rocket ammo (only when using rockets)
+        if (player.currentWeapon == WeaponType.ROCKET_LAUNCHER) {
+            hudPaint.textSize = 8f * scale
+            hudPaint.color = Color.argb(220, 255, 150, 90)
+            hudPaint.textAlign = Paint.Align.RIGHT
+            canvas.drawText("ROCKETS ${player.rocketAmmo}/${Player.MAX_ROCKETS}", chipR, chipB + 12f * scale, hudPaint)
+        }
         hudPaint.textAlign = Paint.Align.LEFT
 
         renderProgressBar(canvas, screenWidth, screenHeight, scale)
