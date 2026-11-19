@@ -177,15 +177,15 @@ class WeaponSelector(
     }
 
     private fun renderCollapsed(canvas: Canvas) {
-        // Background
-        paint.color = Color.argb(180, 0, 0, 0)
-        canvas.drawRoundRect(currentWeaponRect, 12f, 12f, paint)
+        // Glass background (matches HUD panels)
+        paint.color = Color.argb(165, 16, 18, 28)
+        canvas.drawRoundRect(currentWeaponRect, 10f, 10f, paint)
 
         // Border with weapon color
         paint.color = getWeaponColor(currentWeapon)
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 3f
-        canvas.drawRoundRect(currentWeaponRect, 12f, 12f, paint)
+        canvas.drawRoundRect(currentWeaponRect, 10f, 10f, paint)
         paint.style = Paint.Style.FILL
 
         // Weapon icon
