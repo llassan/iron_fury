@@ -1,7 +1,5 @@
-MASSIVE visual overhaul!
-• Brand-new hand-picked pixel-art graphics throughout
-• Animated commando hero + sprite enemies
-• 20 detailed parallax backdrops (forests, snow, caves, neon city, deep space & more)
-• Explosions, muzzle flashes and combat effects
-• Redesigned on-screen controls and title screen
-• New boss visuals
+Controls & combat polish!
+• Redesigned on-screen controls — sleek, translucent D-pad + buttons
+• The gun in your hands now changes with your selected weapon
+• Crisp new muzzle-flash and firing effects
+• Cleaner HUD: framed lives, score and progress bar
