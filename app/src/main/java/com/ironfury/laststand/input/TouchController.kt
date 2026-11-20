@@ -221,28 +221,40 @@ class TouchController(
         drawActionButton(canvas, fireButton, accentFire, fire, ICON_FIRE)
     }
 
-    /** Translucent glass disc with a thin accent ring + optional press glow. */
-    private fun glassDisc(canvas: Canvas, cx: Float, cy: Float, r: Float, accent: Int, pressed: Boolean) {
-        if (pressed) {
-            cGlow.shader = RadialGradient(
+    // Shaders only depend on fixed button geometry + press state, so build them
+    // once and reuse — rebuilding a RadialGradient every frame churns the GC.
+    private val shaderCache = HashMap<String, RadialGradient>()
+    private fun fillShader(cx: Float, cy: Float, r: Float, pressed: Boolean): RadialGradient =
+        shaderCache.getOrPut("f${cx.toInt()},${cy.toInt()},${r.toInt()},$pressed") {
+            RadialGradient(
+                cx, cy - r * 0.35f, r * 1.25f,
+                intArrayOf(
+                    Color.argb(if (pressed) 140 else 62, 60, 70, 92),
+                    Color.argb(if (pressed) 110 else 40, 16, 19, 30)
+                ),
+                null, Shader.TileMode.CLAMP
+            )
+        }
+    private fun glowShader(cx: Float, cy: Float, r: Float, accent: Int): RadialGradient =
+        shaderCache.getOrPut("g${cx.toInt()},${cy.toInt()},${r.toInt()},$accent") {
+            RadialGradient(
                 cx, cy, r * 1.4f,
                 Color.argb(130, Color.red(accent), Color.green(accent), Color.blue(accent)),
                 Color.argb(0, Color.red(accent), Color.green(accent), Color.blue(accent)),
                 Shader.TileMode.CLAMP
             )
+        }
+
+    /** Translucent glass disc with a thin accent ring + optional press glow. */
+    private fun glassDisc(canvas: Canvas, cx: Float, cy: Float, r: Float, accent: Int, pressed: Boolean) {
+        if (pressed) {
+            cGlow.shader = glowShader(cx, cy, r, accent)
             canvas.drawCircle(cx, cy, r * 1.4f, cGlow)
             cGlow.shader = null
         }
         // Glass body: lighter top, darker bottom. Kept subtle/see-through so it
         // doesn't cover the gameplay; brightens noticeably while pressed.
-        cFill.shader = RadialGradient(
-            cx, cy - r * 0.35f, r * 1.25f,
-            intArrayOf(
-                Color.argb(if (pressed) 140 else 62, 60, 70, 92),
-                Color.argb(if (pressed) 110 else 40, 16, 19, 30)
-            ),
-            null, Shader.TileMode.CLAMP
-        )
+        cFill.shader = fillShader(cx, cy, r, pressed)
         canvas.drawCircle(cx, cy, r, cFill)
         cFill.shader = null
         // Accent ring.

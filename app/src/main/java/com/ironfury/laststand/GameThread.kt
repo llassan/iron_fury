@@ -1,6 +1,7 @@
 package com.ironfury.laststand
 
 import android.graphics.Canvas
+import android.os.Build
 import android.view.SurfaceHolder
 import com.ironfury.laststand.utils.Constants
 
@@ -34,7 +35,16 @@ class GameThread(
             // Render
             canvas = null
             try {
-                canvas = surfaceHolder.lockCanvas()
+                // GPU-backed canvas (API 26+) so the sprite blits, gradient shaders,
+                // saveLayer and colour filters run on the GPU instead of the CPU.
+                // lockCanvas() alone returns a SOFTWARE canvas — far too slow for the
+                // pixel-art pipeline. Fall back to software if hardware is unavailable.
+                canvas = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    try { surfaceHolder.lockHardwareCanvas() }
+                    catch (e: Throwable) { surfaceHolder.lockCanvas() }
+                } else {
+                    surfaceHolder.lockCanvas()
+                }
                 synchronized(surfaceHolder) {
                     canvas?.let { gameView.render(it) }
                 }
